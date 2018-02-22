@@ -19,6 +19,7 @@ build/
 tests/report/
 venv/
 
+migrations/
 static/
 .well-known/
 
