@@ -19,6 +19,7 @@ build/
 tests/report/
 venv/
 
+config_settings.py
 migrations/
 static/
 .well-known/

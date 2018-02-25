@@ -12,20 +12,17 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 
 import os
 
+try:
+    from .config_settings import DEBUG, SECRET_KEY, ALLOWED_HOSTS, DATABASES
+except ImportError:
+    raise ImportError("Create a django_project/config_settings.py file with DEBUG, SECRET_KEY, ALLOWED_HOSTS and DATABASES configured")
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.0/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '1+e((@xnu27xwq@h(-c64iaoq-r$*=a32-6vr@z=8&x!)17aoj'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = ['159.89.46.207', '2604:a880:800:a1::9d4:8001']
 
 
 # Application definition
@@ -71,20 +68,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'django_project.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/2.0/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': 'django_project',
-        'USER': 'django',
-        'PASSWORD': 'Us436nE*$N&W',
-        'HOST': 'localhost',
-        'PORT': '5432',
-    }
-}
 
 # Password validation
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators
