@@ -2,6 +2,18 @@
 
 http://159.89.46.207 or http://2604:a880:800:a1::9d4:8001
 
+## Deploying to production
+
+* Adding remote:
+```sh
+git remote add production root@159.89.46.207:deploy
+```
+
+* Deploying to remote:
+```sh
+git push production master
+```
+
 # Development
 
 * Create and activate a Python 3 virtualenv `venv` in this directory.
