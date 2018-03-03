@@ -10,3 +10,14 @@ class BaseStation(models.Model):
     def __str__(self):
         return "{} ({}) - {}".format(self.municipality, self.state, self.address)
 
+class BaseStationWithLocation(models.Model):
+    radio = models.CharField(max_length=10)
+    mcc = models.IntegerField()
+    mnc = models.IntegerField()
+    lac = models.IntegerField()
+    cid = models.IntegerField()
+    point = models.PointField()
+    averageSignal = models.FloatField()
+
+    def __str__(self):
+        return "{}-{}-{}-{}".format(self.mcc, self.mnc, self.lac, self.cid)
