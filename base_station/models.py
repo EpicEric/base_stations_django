@@ -11,13 +11,26 @@ class BaseStation(models.Model):
         return "{} ({}) - {}".format(self.municipality, self.state, self.address)
 
 class BaseStationWithLocation(models.Model):
-    radio = models.CharField(max_length=10)
-    mcc = models.IntegerField()
-    mnc = models.IntegerField()
-    lac = models.IntegerField()
-    cid = models.IntegerField()
+    RADIOS = (
+        ('GSM', 'Global System for Mobile Communications'),
+        ('UMTS', 'Universal Mobile Telecommunications System'),
+        ('LTE', 'Long-Term Evolution'),
+        ('CDMA', 'Code-division multiple access'),
+    )
+
+    radio = models.CharField(max_length=4, choices=RADIOS)
+    mcc = models.PositiveIntegerField()
+    mnc = models.PositiveIntegerField()
+    lac = models.PositiveIntegerField()
+    cid = models.PositiveIntegerField()
     point = models.PointField()
     averageSignal = models.FloatField()
 
     def __str__(self):
         return "{}-{}-{}-{}".format(self.mcc, self.mnc, self.lac, self.cid)
+
+class Topography(models.Model):
+    point = models.PointField()
+
+    def __str__(self):
+        return "LONG:{}, LAT:{}, ALT:{}".format(self.point[0], self.point[1], self.point[2])
