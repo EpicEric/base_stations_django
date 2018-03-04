@@ -24,6 +24,10 @@ git push production master
 DEBUG = True
 
 SECRET_KEY = 'some-secure-random-secret-key'
+# You can generate a new key as follows:
+# >>> import random
+# >>> ''.join(random.SystemRandom().choice('abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)') \
+#         for i in range(50))
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
 
@@ -43,6 +47,12 @@ DATABASES = {
 CREATE EXTENSION postgis;
 ```
 * Run `python manage.py makemigrations && python manage.py migrate`.
-* (optional) Import base station data with `python manage.py import_base_stations file.csv`.
+* (optional) Import all pertinent data:
+```sh
+python manage.py import_owned_base_stations file.csv
+python manage.py import_identified_base_stations file.csv
+python manage.py import_topography directory
+```
+* (optional) Create an admin user with `python manage.py createsuperuser`.
+* Collect static files with `python manage.py collectstatic --noinput`.
 * Run `python manage.py runserver`.
-

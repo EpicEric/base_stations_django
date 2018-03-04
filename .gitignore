@@ -18,9 +18,11 @@ tests/.coverage
 build/
 tests/report/
 venv/
+.venv/
 
 config_settings.py
 migrations/
 static/
 .well-known/
+.vscode/
 

@@ -1,11 +1,10 @@
 import csv
-import re
 import os
 from django.core.management.base import BaseCommand, CommandError
 from django.contrib.gis.geos import Point
 from django.db import transaction
 
-from base_station.models import Topography
+from geography.models import Topography
 
 
 class Command(BaseCommand):
@@ -17,11 +16,13 @@ class Command(BaseCommand):
             help='Location of directory of topographic files')
 
     def handle(self, *args, **options):
-        topography_directory = options['topography_directory']
-        topography_list = list()
+        topography_directory = os.path.expanduser(options['topography_directory'])
         try:
-            topography_files = map(lambda x: topography_directory + x,
-                                   os.listdir(topography_directory))
+            topography_list = []
+            topography_files = filter(lambda x: x[-4:] == '.txt',
+                                  map(lambda x: topography_directory + '/' + x,
+                                      os.listdir(topography_directory)))
+            self.stdout.write('Reading data...')
             for topography_file in topography_files:
                 with open(topography_file, 'r') as f:
                     content = f.readlines()
@@ -29,11 +30,10 @@ class Command(BaseCommand):
                         c = line.split()
                         if len(c) == 3:
                             point = Point(float(c[0]), float(c[1]))
-                            t = Topography(point=point, altitude=float(c[2]))
+                            t = Topography(point=point, altitude=int(float(c[2])))
                             topography_list.append(t)
-            with transaction.atomic():
-                for t in topography_list:
-                    t.save()
+            self.stdout.write('Saving {} objects...'.format(len(topography_list)))
+            Topography.objects.bulk_create(topography_list)
             self.stdout.write(self.style.SUCCESS(
                 'Successfully imported topographic data'))
         except FileNotFoundError:

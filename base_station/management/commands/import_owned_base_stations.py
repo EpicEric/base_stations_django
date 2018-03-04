@@ -1,23 +1,25 @@
 import csv
+import os
 import re
-
 from django.core.management.base import BaseCommand, CommandError
 from django.contrib.gis.geos import Point
 from django.db import transaction
 
-from base_station.models import OwnedBaseStation
+from base_station.models import OwnedBaseStation, Operator
+from geography.models import FederativeUnit
 
 
 class Command(BaseCommand):
-    help = 'Imports base station data from a CSV file'
+    help = 'Imports owned base station data from a Telebrasil CSV file'
 
     def add_arguments(self, parser):
-        parser.add_argument('csv_file', help='Location of the CSV file')
+        parser.add_argument('csv_file', help='Location of the Telebrasil CSV file')
 
     def handle(self, *args, **options):
-        csv_file = options['csv_file']
+        csv_file = os.path.expanduser(options['csv_file'])
         try:
             station_list = []
+            self.stdout.write('Reading data...')
             with open(csv_file, 'r', encoding='iso-8859-1') as f:
                 reader = csv.reader(f, delimiter=';')
                 for row in reader:
@@ -38,12 +40,24 @@ class Command(BaseCommand):
                     if lon.group(2) == "W":
                         lon_deg = -lon_deg
                     pnt = Point(lon_deg, lat_deg)
-                    station = OwnedBaseStation(operator=row[0], state=row[1], municipality=row[2], address=row[4], point=pnt)
+                    operator, created = Operator.objects.get_or_create(
+                        name=row[0],
+                        defaults={'number': '', 'cnpj': '', 'fistel': ''}
+                    )
+                    if created:
+                        self.stdout.write(self.style.WARNING(
+                            'Automatically created operator: {}'.format(operator)))
+                    state, created = FederativeUnit.objects.get_or_create(
+                        short=row[1],
+                        defaults={'name': ''}
+                    )
+                    if created:
+                        self.stdout.write(self.style.WARNING(
+                            'Automatically created FU: {}'.format(state)))
+                    station = OwnedBaseStation(operator=operator, state=state, municipality=row[2], address=row[4], point=pnt)
                     station_list.append(station)
-            with transaction.atomic():
-                for s in station_list:
-                    s.save()
+            self.stdout.write('Saving {} objects...'.format(len(station_list)))
+            OwnedBaseStation.objects.bulk_create(station_list)
             self.stdout.write(self.style.SUCCESS('Successfully imported base station data'))
         except FileNotFoundError:
             raise CommandError('File "{}" does not exist'.format(csv_file))
-
