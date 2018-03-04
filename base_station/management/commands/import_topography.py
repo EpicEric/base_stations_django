@@ -28,8 +28,8 @@ class Command(BaseCommand):
                     for line in content:
                         c = line.split()
                         if len(c) == 3:
-                            point = Point(float(c[0]), float(c[1]), float(c[2]))
-                            t = Topography(point=point)
+                            point = Point(float(c[0]), float(c[1]))
+                            t = Topography(point=point, altitude=float(c[2]))
                             topography_list.append(t)
             with transaction.atomic():
                 for t in topography_list:

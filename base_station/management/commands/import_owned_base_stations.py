@@ -5,7 +5,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.contrib.gis.geos import Point
 from django.db import transaction
 
-from base_station.models import BaseStation
+from base_station.models import OwnedBaseStation
 
 
 class Command(BaseCommand):
@@ -38,7 +38,7 @@ class Command(BaseCommand):
                     if lon.group(2) == "W":
                         lon_deg = -lon_deg
                     pnt = Point(lon_deg, lat_deg)
-                    station = BaseStation(operator=row[0], state=row[1], municipality=row[2], address=row[4], point=pnt)
+                    station = OwnedBaseStation(operator=row[0], state=row[1], municipality=row[2], address=row[4], point=pnt)
                     station_list.append(station)
             with transaction.atomic():
                 for s in station_list:

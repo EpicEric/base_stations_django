@@ -3,7 +3,7 @@ from django.contrib.gis.geos import Point
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
-from base_station.models import BaseStationWithLocation
+from base_station.models import IdentifiedBaseStation
 
 BRASIL_MCC = '724'
 
@@ -23,7 +23,7 @@ class Command(BaseCommand):
                 for row in reader:
                     if row[1] == BRASIL_MCC:
                         point = Point(float(row[6]), float(row[7]))
-                        station = BaseStationWithLocation(
+                        station = IdentifiedBaseStation(
                             radio=row[0],
                             mcc=row[1],
                             mnc=row[2],
