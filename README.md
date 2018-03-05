@@ -26,8 +26,9 @@ DEBUG = True
 SECRET_KEY = 'some-secure-random-secret-key'
 # You can generate a new key as follows:
 # >>> import random
-# >>> ''.join(random.SystemRandom().choice('abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)') \
-#         for i in range(50))
+# >>> ''.join(random.SystemRandom() \
+#       .choice('abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)') \
+#       for i in range(50))
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
 

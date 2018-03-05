@@ -16,4 +16,4 @@ class FederativeUnit(models.Model):
     country = models.CharField(max_length=40, default='Brazil')
 
     def __str__(self):
-        return self.name if self.name else self.short
+        return '{} ({})'.format(self.name or self.short, self.country)

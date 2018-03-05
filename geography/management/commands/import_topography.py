@@ -2,7 +2,6 @@ import csv
 import os
 from django.core.management.base import BaseCommand, CommandError
 from django.contrib.gis.geos import Point
-from django.db import transaction
 
 from geography.models import Topography
 
