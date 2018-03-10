@@ -31,7 +31,7 @@ class Command(BaseCommand):
                             lac=row[3],
                             cid=row[4],
                             point=point,
-                            averageSignal=float(row[13]) or None)
+                            average_signal=float(row[13]) or None)
                         station_list.append(station)
             self.stdout.write('Saving {} objects...'.format(len(station_list)))
             IdentifiedBaseStation.objects.bulk_create(station_list)

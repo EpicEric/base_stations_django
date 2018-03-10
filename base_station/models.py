@@ -37,7 +37,7 @@ class IdentifiedBaseStation(models.Model):
     lac = models.PositiveIntegerField()
     cid = models.PositiveIntegerField()
     point = models.PointField()
-    averageSignal = models.FloatField(null=True)
+    average_signal = models.FloatField(null=True)
 
     def __str__(self):
         return "{}-{}-{}-{} ({})".format(self.mcc, self.mnc, self.lac, self.cid, self.radio)
