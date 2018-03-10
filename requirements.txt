@@ -1,4 +1,8 @@
 Django==2.0.2
+django-leaflet==0.23.0
+djangorestframework==3.7.7
+djangorestframework-gis==0.12
+geoip2==2.7.0
 gunicorn==19.7.1
 psycopg2==2.7.4
 psycopg2-binary==2.7.4

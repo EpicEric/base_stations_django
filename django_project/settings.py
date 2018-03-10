@@ -15,7 +15,9 @@ import os
 try:
     from .config_settings import DEBUG, SECRET_KEY, ALLOWED_HOSTS, DATABASES
 except ImportError:
-    raise ImportError("Create a django_project/config_settings.py file with DEBUG, SECRET_KEY, ALLOWED_HOSTS and DATABASES configured")
+    raise ImportError(
+        "Create a 'django_project/config_settings.py' file with "
+        "DEBUG, SECRET_KEY, ALLOWED_HOSTS and DATABASES configured")
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -35,6 +37,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.gis',
+
+    'leaflet',
+    'rest_framework',
+    'rest_framework_gis',
 
     'geography',
     'base_station',
@@ -109,3 +115,6 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
+
+
+GEOIP_PATH = os.path.join(BASE_DIR, 'static/geoip/')

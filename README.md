@@ -18,7 +18,7 @@ git push production master
 
 * Create and activate a Python 3 virtualenv `venv` in this directory.
 * Run `pip install -r requirements.txt`.
-* [Install PostGIS](https://postgis.net/install/) (+ GEOS, PROJ.4, GDAL; optional GeoIP).
+* [Install PostGIS](https://postgis.net/install/) (+ GEOS, PROJ.4, GDAL, GeoIP2).
 * Create a file `django_project/config_settings.py` and set the following options:
 ```python
 DEBUG = True
@@ -56,4 +56,5 @@ python manage.py import_topography directory
 ```
 * (optional) Create an admin user with `python manage.py createsuperuser`.
 * Collect static files with `python manage.py collectstatic --noinput`.
+* Download and extract the `.mmdb` Country and City files from [MaxMind](https://dev.maxmind.com/geoip/geoip2/geolite2/) into `static/geoip`.
 * Run `python manage.py runserver`.

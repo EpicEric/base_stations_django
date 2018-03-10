@@ -1,0 +1,24 @@
+{% load leaflet_tags %}
+<html>
+  <head>
+    {% leaflet_js %}
+    {% leaflet_css %}
+    <style>
+      .leaflet-container {
+        height: 100%;
+      }
+    </style>
+    <script type="text/javascript">
+      var baseLocation = {{ location }};
+
+      window.addEventListener("map:init", function(event) {
+        var map = event.detail.map;
+        map.setView(baseLocation, 15);
+        L.marker(baseLocation).addTo(map);
+      });
+    </script>
+  </head>
+  <body>
+    {% leaflet_map "main" %}
+  </body>
+</html>
