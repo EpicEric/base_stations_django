@@ -120,7 +120,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 
 # Project-specific settings
 
-GEOIP_PATH = os.path.join(BASE_DIR, 'static/geoip/')
+GEOIP_PATH = os.path.join(BASE_DIR, 'static/geoip2/')
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [

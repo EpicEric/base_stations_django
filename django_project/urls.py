@@ -23,7 +23,7 @@ from .api import router
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include(router.urls)),
+    path('api/', include((router.urls, 'django_project'), namespace='api')),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     path('', index, name='index'),
 ]

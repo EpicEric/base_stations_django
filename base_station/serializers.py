@@ -7,4 +7,4 @@ class IdentifiedBaseStationSerializer(GeoFeatureModelSerializer):
     class Meta:
         model = IdentifiedBaseStation
         geo_field = 'point'
-        fields = ('id', 'mcc', 'mnc', 'lac', 'cid', 'radio', 'average_signal')
+        fields = ('id', 'cgi', 'radio', 'average_signal')

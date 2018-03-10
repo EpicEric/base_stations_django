@@ -39,5 +39,9 @@ class IdentifiedBaseStation(models.Model):
     point = models.PointField()
     average_signal = models.FloatField(null=True)
 
+    @property
+    def cgi(self):
+        return "{}-{}-{}-{}".format(self.mcc, self.mnc, self.lac, self.cid)
+
     def __str__(self):
-        return "{}-{}-{}-{} ({})".format(self.mcc, self.mnc, self.lac, self.cid, self.radio)
+        return "{} ({})".format(self.cgi, self.radio)
