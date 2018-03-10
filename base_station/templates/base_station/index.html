@@ -9,33 +9,58 @@
       }
     </style>
     <script type="text/javascript">
+      // Estimated location with GeoIP2
       var baseLocation = {{ location | safe }};
-      var baseURL = "{% url 'api:base-station-list' %}";
 
       window.addEventListener("map:init", function(event) {
         var map = event.detail.map;
-        map.setView(baseLocation, 15);
-        // Get data from API
-        var fetchBaseStation = function(url) {
-          fetch(url).then(function(resp) {
-            // Convert to GeoJSON
-            return resp.json();
-          }).then(function(data) {
-            // Iterate over every feature and add to map
-            L.geoJson(data, {
-              onEachFeature: function onEachFeature(feature, marker) {
-                var props = feature.properties;
-                marker.bindTooltip(`${props.cgi} (${props.radio})`);
-            }}).addTo(map);
-            return data["next"];
-          // Try next page of API
-          }).then(function(new_url) {
-            if (new_url != null) {
-              fetchBaseStation(new_url);
+        map.fetchID = 0;
+
+        // Function to fetch data from API
+        var fetchBaseStation = function(url, id) {
+          // After changing pan/zoom, stop fetching from previous screen
+          if (map.fetchID == id) {
+            fetch(url).then(function(resp) {
+              // Convert to GeoJSON
+              return resp.json();
+            }).then(function(data) {
+              // Iterate over every feature and add to map
+              layer = L.geoJson(data, {
+                onEachFeature: function onEachFeature(feature, marker) {
+                  var props = feature.properties;
+                  marker.bindTooltip(`${props.cgi} (${props.radio})`);
+              }});
+              layer.baseStation = true;
+              layer.addTo(map);
+              return data["next"];
+            // Try next page of API
+            }).then(function(new_url) {
+              if (new_url) {
+                fetchBaseStation(new_url, id);
+              }
+            });
+          }
+        }
+
+        // After panning/zooming, clear markers and fetch new data
+        map.on('moveend', function(e) {
+          map.fetchID = (map.fetchID % 4095) + 1;
+          map.eachLayer(function(layer) {
+            if (layer.baseStation) {
+              map.removeLayer(layer);
             }
           });
-        };
-        fetchBaseStation(baseURL);
+          // Use API endpoint to fetch data
+          var baseURL = "{% url 'api:base-station-list' %}?in_bbox=" + map.getBounds().toBBoxString();
+          fetchBaseStation(baseURL, map.fetchID);
+        });
+
+        // Attempt to get location with Geolocation API to update view
+        map.locate().on("locationfound", function(e) {
+          map.setView([e.latitude, e.longitude], 17);
+        }).on("locationerror", function(e) {
+          map.setView(baseLocation, 17);
+        });
       });
     </script>
   </head>
