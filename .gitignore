@@ -9,6 +9,7 @@
 .tox/
 __pycache__
 MANIFEST
+.DS_Store
 dist/
 docs/_build/
 docs/locale/
