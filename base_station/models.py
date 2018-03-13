@@ -1,6 +1,6 @@
 from django.contrib.gis.db import models
+from django.contrib.gis.geos import Polygon
 from geography.models import FederativeUnit
-
 
 class Operator(models.Model):
     name = models.CharField(max_length=40)
@@ -42,6 +42,17 @@ class IdentifiedBaseStation(models.Model):
     @property
     def cgi(self):
         return "{}-{}-{}-{}".format(self.mcc, self.mnc, self.lac, self.cid)
+
+    @property
+    def covered_area(erb):
+        #FIXME
+        return erb.point.buffer(1)
+
+    @staticmethod
+    def get_base_stations_inside_bounds(min_lon, min_lat, max_lon, max_lat):
+        bounds = (min_lon, min_lat, max_lon, max_lat)
+        geom = Polygon.from_bbox(bounds)
+        return IdentifiedBaseStation.objects.filter(point__contained=geom)
 
     def __str__(self):
         return "{} ({})".format(self.cgi, self.radio)
