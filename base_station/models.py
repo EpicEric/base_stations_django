@@ -13,18 +13,35 @@ class Operator(models.Model):
         return self.name
 
 
-class OwnedBaseStation(models.Model):
+class BaseStation(models.Model):
+    point = models.PointField()
+
+    class Meta:
+        abstract = True
+
+    @property
+    def covered_area(self):
+        # FIXME
+        return self.point.buffer(1)
+
+    @classmethod
+    def get_base_stations_inside_bounds(cls, min_lon, min_lat, max_lon, max_lat):
+        bounds = (min_lon, min_lat, max_lon, max_lat)
+        geom = Polygon.from_bbox(bounds)
+        return cls.objects.filter(point__contained=geom)
+
+
+class OwnedBaseStation(BaseStation):
     operator = models.ForeignKey(Operator, null=True, on_delete=models.SET_NULL)
     state = models.ForeignKey(FederativeUnit, null=True, on_delete=models.SET_NULL)
     municipality = models.CharField(max_length=40)
     address = models.CharField(max_length=200, null=True, blank=True)
-    point = models.PointField()
 
     def __str__(self):
         return "{} ({}) - {}".format(self.municipality, self.state.short, self.address)
 
 
-class IdentifiedBaseStation(models.Model):
+class IdentifiedBaseStation(BaseStation):
     RADIOS = (
         ('GSM', 'Global System for Mobile Communications'),
         ('UMTS', 'Universal Mobile Telecommunications System'),
@@ -37,23 +54,11 @@ class IdentifiedBaseStation(models.Model):
     mnc = models.PositiveIntegerField()
     lac = models.PositiveIntegerField()
     cid = models.PositiveIntegerField()
-    point = models.PointField()
     average_signal = models.FloatField(null=True)
 
     @property
     def cgi(self):
         return "{}-{}-{}-{}".format(self.mcc, self.mnc, self.lac, self.cid)
-
-    @property
-    def covered_area(erb):
-        #FIXME
-        return erb.point.buffer(1)
-
-    @staticmethod
-    def get_base_stations_inside_bounds(min_lon, min_lat, max_lon, max_lat):
-        bounds = (min_lon, min_lat, max_lon, max_lat)
-        geom = Polygon.from_bbox(bounds)
-        return IdentifiedBaseStation.objects.filter(point__contained=geom)
 
     def __str__(self):
         return "{} ({})".format(self.cgi, self.radio)

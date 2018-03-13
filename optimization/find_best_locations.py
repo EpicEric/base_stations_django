@@ -3,11 +3,11 @@ from functools import reduce
 import numpy as np
 from scipy.optimize import minimize
 
-from base_station.models import IdentifiedBaseStation
+from optimization.models import OptimizedBaseStation
 
 
 def objective(covered_area_by_bs, new_bs):
-    new_bs = IdentifiedBaseStation(point = Point(new_bs[0], new_bs[1]))
+    new_bs = OptimizedBaseStation(point = Point(new_bs[0], new_bs[1]))
     new_bs_covered_area = new_bs.covered_area
     total_area = (reduce(lambda x, y: x | y, covered_area_by_bs) | 
                   new_bs_covered_area).area
