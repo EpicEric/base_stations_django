@@ -5,6 +5,7 @@ from django.core.management.base import BaseCommand, CommandError
 
 from base_station.models import IdentifiedBaseStation
 
+
 BRASIL_MCC = '724'
 
 class Command(BaseCommand):

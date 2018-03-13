@@ -3,10 +3,10 @@ from django.contrib.gis.geos import Point
 from model_mommy import mommy
 
 from base_station.models import IdentifiedBaseStation
-from base_station.use_cases.find_best_locations import find_best_locations
+from optimization.find_best_locations import find_best_locations
+
 
 class FindBestLocationsTestCase(TestCase):
-
     def setUp(self):
         self.bounds = ((-50, -40),(-25, -20))
         self.bs_inside = [

@@ -7,7 +7,6 @@ from base_station.models import IdentifiedBaseStation
 
 
 class IdentifiedBaseStationTestCase(TestCase):
-
     def test_one_bs_inside_bounds(self):
         bs = mommy.make(IdentifiedBaseStation, point=Point(-46.5, -23.5))
         bs_within_box = IdentifiedBaseStation.get_base_stations_inside_bounds(

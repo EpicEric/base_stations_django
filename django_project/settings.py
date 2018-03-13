@@ -46,6 +46,7 @@ INSTALLED_APPS = [
 
     'geography',
     'base_station',
+    'optimization',
 ]
 
 MIDDLEWARE = [
