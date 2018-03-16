@@ -21,6 +21,7 @@ venv/
 .venv/
 
 config_settings.py
+.idea/
 migrations/
 static/
 .well-known/
