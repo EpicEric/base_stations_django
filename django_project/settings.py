@@ -137,3 +137,13 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly',
     ],
 }
+
+LEAFLET_CONFIG = {
+    'PLUGINS': {
+        'leaflet.spin': {
+            'js': ['js/spin.min.js',
+                   'js/leaflet.spin.min.js'],
+            'auto-include': True,
+        }
+    }
+}

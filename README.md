@@ -56,6 +56,6 @@ python manage.py import_identified_base_stations file.csv
 python manage.py import_topography directory
 ```
 * (optional) Create an admin user with `python manage.py createsuperuser`.
-* Collect static files with `python manage.py collectstatic --noinput`.
+* Collect static files with `python manage.py collectstatic --noinput --link`.
 * (optional) Download and extract the `.mmdb` Country and City files from [MaxMind](https://dev.maxmind.com/geoip/geoip2/geolite2/) into `static/geoip2`.
 * Run `python manage.py runserver`.

@@ -1,6 +1,7 @@
 {% load leaflet_tags %}
 <html>
   <head>
+    <script type="module">export {Spinner};</script>
     {% leaflet_js %}
     {% leaflet_css %}
     <style>
@@ -37,8 +38,12 @@
             }).then(function(new_url) {
               if (new_url) {
                 fetchBaseStation(new_url, id);
+              } else {
+                map.spin(false);
               }
             });
+          } else {
+            map.spin(false);
           }
         }
 
@@ -52,6 +57,7 @@
           });
           // Use API endpoint to fetch data
           var baseURL = "{% url 'api:base-station-list' %}?in_bbox=" + map.getBounds().toBBoxString();
+          map.spin(true);
           fetchBaseStation(baseURL, map.fetchID);
         });
 
