@@ -18,5 +18,4 @@ class FindBestLocationsTestCase(TestCase):
 
     def test_find_best_locations(self):
         solution = find_best_locations(self.bs_inside, 2, self.bounds)
-        self.assertEqual(
-            solution.message, 'Optimization terminated successfully.')
+        self.assertEqual(len(solution), 2) # FIXME

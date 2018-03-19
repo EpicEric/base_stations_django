@@ -1,0 +1,41 @@
+{% load leaflet_tags %}
+<html>
+  <head>
+    <script type="module">export {Spinner};</script>
+    {% leaflet_js %}
+    {% leaflet_css %}
+    <style>
+      .leaflet-container {
+        height: 100%;
+      }
+    </style>
+    <script type="text/javascript">
+      // Estimated location with GeoIP2
+      var baseLocation = {{ location | safe }};
+      var baseStations = {{ base_stations }};
+      var suggestions = {{ suggestions }};     
+
+      window.addEventListener("map:init", function(event) {
+        var map = event.detail.map;
+        for(i = 0; i < baseStations.length; i++) {
+            L.marker({lon: baseStations[i][0], lat: baseStations[i][1]}).addTo(map);
+        }
+
+        for(i = 0; i < suggestions.length; i++) {
+          L.marker({lon: suggestions[i][0], lat: suggestions[i][1]}).addTo(map);
+          L.circle({lon: suggestions[i][0], lat: suggestions[i][1]}, {
+                color: 'red',
+                fillColor: '#f03',
+                fillOpacity: 0.1,
+                radius: 500
+                }).addTo(map);
+        }
+
+        map.setView({lon: baseLocation[0], lat: baseLocation[1]}, 17);
+      });
+    </script>
+  </head>
+  <body>
+    {% leaflet_map 'main' %}
+  </body>
+</html>

@@ -22,7 +22,7 @@ class BaseStation(models.Model):
     @property
     def covered_area(self):
         # FIXME
-        return self.point.buffer(1)
+        return self.point.buffer(1/220)
 
     @classmethod
     def get_base_stations_inside_bounds(cls, min_lon, min_lat, max_lon, max_lat):

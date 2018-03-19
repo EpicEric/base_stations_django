@@ -28,5 +28,6 @@ def find_best_locations(base_stations, number, bounds):
     solution = minimize(lambda bss: objective(covered_area_by_bs, bss),
                         x0,
                         method='SLSQP',
-                        bounds=bounds * number)
-    return solution
+                        bounds=bounds * number,
+                        options={'eps': 0.0001})
+    return grouper(solution.x, 2)
