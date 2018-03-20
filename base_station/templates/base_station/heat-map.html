@@ -14,34 +14,23 @@
       // Estimated location with GeoIP2
       var baseLocation = {{ location | safe }};
       var baseStations = {{ base_stations }};
-      var suggestions = {{ suggestions }};     
+      var heatmap = {{heatmap}}
 
       window.addEventListener("map:init", function(event) {
         var map = event.detail.map;
         for(i = 0; i < baseStations.length; i++) {
             L.marker({lon: baseStations[i][0], lat: baseStations[i][1]}).addTo(map);
+            L.circle({lon: baseStations[i][0], lat: baseStations[i][1]}, {
+              color: 'blue',
+              fillColor: '#0202f4',
+              fillOpacity: 0.1,
+              radius: 500
+              }).addTo(map);
         }
+        
 
-        for(i = 0; i < suggestions.length; i++) {
-          L.marker({lon: suggestions[i][0], lat: suggestions[i][1]}).addTo(map);
-          L.circle({lon: suggestions[i][0], lat: suggestions[i][1]}, {
-                color: 'red',
-                fillColor: '#f03',
-                fillOpacity: 0.1,
-                radius: 500
-                }).addTo(map);
-        }
         map.setView({lon: baseLocation[0], lat: baseLocation[1]}, 17);
-        var heat = L.heatLayer(
-          [
-            [-23.5572, -46.7302, "5000"],
-            [-23.5573, -46.7302, "486"],
-            [-23.5574, -46.7302, "807"],
-            [-23.5575, -46.7302, "899"],
-            [-23.5576, -46.7302, "1273"],
-            [-23.5577, -46.7302, "1258"],
-
-          ], {radius: 25, gradient: {0.4: 'blue', 0.65: 'lime', 1: 'red'}}).addTo(map);
+        var heat = L.heatLayer(heatmap, {radius: 25, gradient: {0.4: 'blue', 0.65: 'lime', 1: 'red'}}).addTo(map);
       });
     </script>
   </head>

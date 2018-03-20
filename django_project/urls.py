@@ -17,7 +17,7 @@ from django.contrib import admin
 from django.urls import include, path
 from django.views.generic import TemplateView
 
-from base_station.views import index, ExampleView
+from base_station.views import index, ExampleView, HeatMapView
 from .api import router
 
 
@@ -26,5 +26,6 @@ urlpatterns = [
     path('api/', include((router.urls, 'django_project'), namespace='api')),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     path('', index, name='index'),
-    path('example/', ExampleView.as_view())
+    path('example/', ExampleView.as_view()),
+    path('heat-map/', HeatMapView.as_view())
 ]
