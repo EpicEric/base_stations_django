@@ -49,15 +49,14 @@ DATABASES = {
 CREATE EXTENSION postgis;
 ```
 * Run `python manage.py makemigrations && python manage.py migrate`.
-* (optional) Import all pertinent data:
+* (optional) Import base station data:
 ```sh
 python manage.py import_owned_base_stations file.csv
 python manage.py import_identified_base_stations file.csv
-python manage.py import_topography directory
 ```
-* (optional) Create an admin user with `python manage.py createsuperuser`.
 * Collect static files with `python manage.py collectstatic --noinput --link`.
 * (optional) Download and extract the `.mmdb` Country and City files from [MaxMind](https://dev.maxmind.com/geoip/geoip2/geolite2/) into `static/geoip2`.
 * Register to [Google Earth Engine](https://signup.earthengine.google.com/).
 * Get an EE OAuth2 [authentication token](https://developers.google.com/earth-engine/python_install_manual#setting-up-authentication-credentials).
+* (optional) Create an admin user with `python manage.py createsuperuser`.
 * Run `python manage.py runserver`.

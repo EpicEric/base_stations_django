@@ -17,7 +17,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         csv_file = os.path.expanduser(options['csv_file'])
         try:
-            station_list = []
+            new = 0
+            unmodified = 0
             self.stdout.write('Reading data...')
             with open(csv_file, 'r', encoding='iso-8859-1') as f:
                 reader = csv.reader(f, delimiter=';')
@@ -53,10 +54,21 @@ class Command(BaseCommand):
                     if created:
                         self.stdout.write(self.style.WARNING(
                             'Automatically created FU: {}'.format(state)))
-                    station = OwnedBaseStation(operator=operator, state=state, municipality=row[2], address=row[4], point=pnt)
-                    station_list.append(station)
-            self.stdout.write('Saving {} objects...'.format(len(station_list)))
-            OwnedBaseStation.objects.bulk_create(station_list)
-            self.stdout.write(self.style.SUCCESS('Successfully imported base station data'))
+                    station, created = OwnedBaseStation.objects.get_or_create(
+                        operator=operator,
+                        state=state,
+                        municipality=row[2],
+                        address=row[4],
+                        defaults={
+                            'point': pnt
+                        })
+                    if created:
+                        new += 1
+                    else:
+                        unmodified += 1
+            self.stdout.write(self.style.SUCCESS(
+                'Successfully imported base station data ({} new, {} unmodified)'.format(
+                    new, unmodified
+                )))
         except FileNotFoundError:
             raise CommandError('File "{}" does not exist'.format(csv_file))
