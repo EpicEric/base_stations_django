@@ -8,3 +8,13 @@ class FederativeUnit(models.Model):
 
     def __str__(self):
         return '{} ({})'.format(self.name or self.short, self.country)
+
+
+class Topography(models.Model):
+    poly = models.MultiPolygonField()
+    altitude = models.IntegerField()
+
+
+class Population(models.Model):
+    poly = models.MultiPolygonField()
+    count = models.PositiveIntegerField()
