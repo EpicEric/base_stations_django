@@ -24,7 +24,7 @@ venv/
 config_settings.py
 .idea/
 migrations/
-static/
+/static/
 .well-known/
 .vscode/
 
