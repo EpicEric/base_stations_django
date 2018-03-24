@@ -4,7 +4,6 @@
     <script type="module">export {Spinner};</script>
     {% leaflet_js %}
     {% leaflet_css %}
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js"></script>
       <style>
       .leaflet-container {
         height: 100%;
@@ -31,17 +30,15 @@
                 radius: 500
                 }).addTo(map);
         }
+        map.on('click', function(e){
+          var popup = L.popup();
+          
+          popup
+          .setLatLng(e.latlng)
+          .setContent("You clicked the map at " + e.latlng.toString())
+          .openOn(map);
+        });
         map.setView({lon: baseLocation[0], lat: baseLocation[1]}, 17);
-        var heat = L.heatLayer(
-          [
-            [-23.5572, -46.7302, "5000"],
-            [-23.5573, -46.7302, "486"],
-            [-23.5574, -46.7302, "807"],
-            [-23.5575, -46.7302, "899"],
-            [-23.5576, -46.7302, "1273"],
-            [-23.5577, -46.7302, "1258"],
-
-          ], {radius: 25, gradient: {0.4: 'blue', 0.65: 'lime', 1: 'red'}}).addTo(map);
       });
     </script>
   </head>

@@ -16,21 +16,24 @@
       var baseStations = {{ base_stations }};
       var heatmap = {{heatmap}}
 
+   
+
       window.addEventListener("map:init", function(event) {
         var map = event.detail.map;
         for(i = 0; i < baseStations.length; i++) {
             L.marker({lon: baseStations[i][0], lat: baseStations[i][1]}).addTo(map);
-            L.circle({lon: baseStations[i][0], lat: baseStations[i][1]}, {
-              color: 'blue',
-              fillColor: '#0202f4',
-              fillOpacity: 0.1,
-              radius: 500
-              }).addTo(map);
-        }
-        
-
+        }      
         map.setView({lon: baseLocation[0], lat: baseLocation[1]}, 17);
         var heat = L.heatLayer(heatmap, {radius: 25, gradient: {0.4: 'blue', 0.65: 'lime', 1: 'red'}}).addTo(map);
+        map.on('click', function(e){
+          var popup = L.popup();
+          
+          popup
+          .setLatLng(e.latlng)
+          .setContent("You clicked the map at " + e.latlng.toString())
+          .openOn(map);
+        });
+
       });
     </script>
   </head>
