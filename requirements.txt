@@ -12,5 +12,6 @@ model_mommy==1.5.1
 numpy==1.14.1
 psycopg2==2.7.4
 psycopg2-binary==2.7.4
+pyOpenSSL==17.5.0
 pytz==2018.3
 scipy==1.0.0
