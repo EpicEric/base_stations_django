@@ -15,6 +15,7 @@
 
       window.addEventListener("map:init", function(event) {
         var map = event.detail.map;
+        map.setMaxZoom(19);
         map.fetchID = 0;
 
         // Function to fetch data from API
@@ -31,8 +32,7 @@
                   var props = feature.properties;
                   marker.bindTooltip(`${props.cgi} (${props.radio})`);
               }});
-              layer.baseStation = true;
-              layer.addTo(map);
+              map.markerClusterGroup.addLayer(layer);
               return data["next"];
             // Try next page of API
             }).then(function(new_url) {
@@ -49,7 +49,7 @@
 
         // After panning/zooming, clear markers and fetch new data
         map.on('moveend', function(e) {
-          map.fetchID = (map.fetchID % 4095) + 1;
+          map.fetchID = (map.fetchID % 9007199254740991) + 1;
           map.eachLayer(function(layer) {
             if (layer.baseStation) {
               map.removeLayer(layer);
@@ -58,6 +58,9 @@
           // Use API endpoint to fetch data
           var baseURL = "{% url 'api:base-station-list' %}?in_bbox=" + map.getBounds().toBBoxString();
           map.spin(true);
+          map.markerClusterGroup = L.markerClusterGroup();
+          map.markerClusterGroup.baseStation = true;
+          map.addLayer(map.markerClusterGroup);
           fetchBaseStation(baseURL, map.fetchID);
         });
 

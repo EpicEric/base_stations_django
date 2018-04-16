@@ -144,6 +144,12 @@ LEAFLET_CONFIG = {
             'js': ['js/spin.min.js',
                    'js/leaflet.spin.min.js'],
             'auto-include': True,
+        },
+        'Leaflet.markercluster': {
+            'js': ['js/leaflet.markercluster.js'],
+            'css': ['css/MarkerCluster.css',
+                    'css/MarkerCluster.Default.css'],
+            'auto-include': True,
         }
     }
 }
