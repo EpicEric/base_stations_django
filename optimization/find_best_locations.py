@@ -3,7 +3,7 @@ from functools import reduce
 import numpy as np
 from scipy.optimize import minimize, basinhopping
 from optimization.models import OptimizedBaseStation
-
+from optimization.taguchi import taguchi
 
 class OptimizeLocation():
 
@@ -30,7 +30,7 @@ class OptimizeLocation():
         covered_area_by_bs = list(map(lambda bs: bs.covered_area, base_stations))
         solution = basinhopping(lambda x: OptimizeLocation.objective(covered_area_by_bs, x), x0, minimizer_kwargs=minimizer_kwargs,
                     niter=10)
-        print(solution)
+        print(solution.x)
         return OptimizeLocation.grouper(solution.x, 2)
 
     def slsqp(base_stations, number, bounds):
@@ -45,5 +45,14 @@ class OptimizeLocation():
                             method='SLSQP',
                             bounds=bounds * number,
                             options={'eps': 0.1})
-        print(solution)
         return OptimizeLocation.grouper(solution.x, 2)
+
+    def taguchi(base_stations, number, bounds):
+        x = np.linspace(bounds[0][0], bounds[0][1], number)
+        y = (bounds[1][1] - bounds[1][0])/2 + bounds[1][0]
+        x0 = [Point(xi, y) for xi in x]
+
+        covered_area_by_bs = list(map(lambda bs: bs.covered_area, base_stations))
+        solution = taguchi(bounds * number, 3, lambda bss: OptimizeLocation.objective(covered_area_by_bs, bss), 0.9)
+        print(solution)
+        return OptimizeLocation.grouper(solution['x'], 2)

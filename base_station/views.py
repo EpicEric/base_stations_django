@@ -63,6 +63,20 @@ class SlsqpView(ExampleView):
             'suggestions': solution}
         return render(request, self.template_name, context)
 
+class TaguchiView(ExampleView):
+    
+    def get(self, request, *args, **kwargs):
+        solution = OptimizeLocation.taguchi(self.bss, 2, self.bounds)
+        
+        solution = [list(s) for s in solution]
+        bs_coordinates = list(map(lambda bs: [bs.point.x, bs.point.y], self.bss))
+
+        context = {
+            'location': self.location,
+            'base_stations': bs_coordinates,
+            'suggestions': solution}
+        return render(request, self.template_name, context)
+
 
 class HeatMapView(TemplateView):
     template_name = 'base_station/heat-map.html'

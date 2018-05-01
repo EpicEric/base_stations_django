@@ -17,7 +17,7 @@ from django.contrib import admin
 from django.urls import include, path
 from django.views.generic import TemplateView
 
-from base_station.views import index, BasinhoppingView, HeatMapView, SlsqpView
+from base_station.views import index, BasinhoppingView, HeatMapView, SlsqpView, TaguchiView
 from .api import router
 
 
@@ -28,5 +28,6 @@ urlpatterns = [
     path('', index, name='index'),
     path('example/basinhopping', BasinhoppingView.as_view()),
     path('example/slsqp', SlsqpView.as_view()),
+    path('example/taguchi', TaguchiView.as_view()),
     path('heat-map/', HeatMapView.as_view())
 ]
