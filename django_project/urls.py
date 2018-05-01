@@ -28,9 +28,9 @@ urlpatterns = [
     path('api/', include((router.urls, 'django_project'), namespace='api')),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     path('', index, name='index'),
-    path('example/basinhopping', BasinhoppingView.as_view(), name='basinhopping'),
-    path('example/slsqp', SlsqpView.as_view(), name='slsqp'),
-    path('example/taguchi', TaguchiView.as_view(), name='taguchi'),
+    path('optimization/basinhopping', BasinhoppingView.as_view(), name='basinhopping'),
+    path('optimization/slsqp', SlsqpView.as_view(), name='slsqp'),
+    path('optimization/taguchi', TaguchiView.as_view(), name='taguchi'),
     path('heat-map/', HeatMapView.as_view(), name='heat-map'),
     path('optimization/', OptimizationView.as_view())
 ]
