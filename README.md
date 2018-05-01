@@ -59,4 +59,5 @@ python manage.py import_identified_base_stations file.csv
 * Register to [Google Earth Engine](https://signup.earthengine.google.com/).
 * Get an EE OAuth2 [authentication token](https://developers.google.com/earth-engine/python_install_manual#setting-up-authentication-credentials).
 * (optional) Create an admin user with `python manage.py createsuperuser`.
+* Run `python manage.py createcachetable`.
 * Run `python manage.py runserver`.

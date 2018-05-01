@@ -142,15 +142,29 @@ REST_FRAMEWORK = {
 LEAFLET_CONFIG = {
     'PLUGINS': {
         'leaflet.spin': {
-            'js': ['js/spin.min.js',
-                   'js/leaflet.spin.min.js'],
+            'js': ['leaflet_plugin/js/spin.min.js',
+                   'leaflet_plugin/js/leaflet.spin.min.js'],
             'auto-include': True,
         },
-        'Leaflet.markercluster': {
-            'js': ['js/leaflet.markercluster.js'],
-            'css': ['css/MarkerCluster.css',
-                    'css/MarkerCluster.Default.css'],
+        # 'Leaflet.markercluster': {
+        #     'js':  ['leaflet_plugin/js/leaflet.markercluster.js'],
+        #     'css': ['leaflet_plugin/css/MarkerCluster.css',
+        #             'leaflet_plugin/css/MarkerCluster.Default.css'],
+        #     'auto-include': True,
+        # },
+        'leaflet.customcluster': {
+            'js': ['leaflet_plugin/js/leaflet.customcluster.js'],
             'auto-include': True,
-        }
+        },
     }
+}
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    },
+    'db_cache': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'django_cache',
+    },
 }

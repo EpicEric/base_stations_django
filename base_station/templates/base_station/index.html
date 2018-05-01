@@ -1,7 +1,6 @@
 {% load leaflet_tags %}
 <html>
   <head>
-    <script type="module">export {Spinner};</script>
     {% leaflet_js %}
     {% leaflet_css %}
     <style>
@@ -22,53 +21,63 @@
           map.fetchID = 0;
           var tileLayer = L.gridLayer();
           tileLayer.on('tileload', function(e) {
-              var tile = e.coords;
-              // Use api endpoint to fetch data
-              var baseURL = "{% url 'api:cluster-list' %}?zoom_size=" + tile.z + "&x_tile=" + tile.x + "&y_tile=" + tile.y;
-              var fetchID = map.fetchID;
-              fetchBaseStation(baseURL, fetchID);
+            var tile = e.coords;
+            // Use API endpoint to fetch data
+            var baseURL = "{% url 'api:cluster-list' %}?zoom_size=" + tile.z + "&x_tile=" + tile.x + "&y_tile=" + tile.y;
+            var fetchID = map.fetchID;
+            fetchBaseStation(baseURL, fetchID);
           });
           map.addLayer(tileLayer);
         }
 
         // Function to fetch data from API
         var fetchBaseStation = function(url, id) {
-          fetch(url).then(function(resp) {
-            // Convert to GeoJSON
-            return resp.json();
-          }).then(function(data) {
-            // Iterate over every feature and add to map
-            layer = L.geoJson(data, {
-              onEachFeature: function onEachFeature(feature, marker) {
-                var props = feature.properties;
-                if (props.count > 1) {
-                  marker.bindTooltip(`${props.count}`);
-                } else {
-                  marker.bindTooltip(`${props.cgi}`);
+          if (map.fetchID == id) {
+            map.fetchCount = map.fetchCount + 1;
+            fetch(url).then(function(resp) {
+              // Convert to GeoJSON
+              return resp.json();
+            }).then(function(data) {
+              // Iterate over every feature and add to map
+              layer = L.geoJson(data, {
+                onEachFeature: function onEachFeature(feature, marker) {
+                  var props = feature.properties;
+                  if (props.count > 1) {
+                    if (props.count > 100) {
+                      marker.setIcon(customClusterBig);
+                    } else if (props.count > 20) {
+                      marker.setIcon(customClusterMedium);
+                    } else {
+                      marker.setIcon(customClusterSmall);
+                    }
+                    marker.bindTooltip(`${props.count}`);
+                  } else {
+                    marker.bindTooltip(`${props.cgi}`);
+                  }
+              }});
+              layer.baseStation = true;
+              map.fetchCount = map.fetchCount - 1;
+              // After changing zoom, do not add old markers to screen
+              if (map.fetchID == id) {
+                map.addLayer(layer);
+                if (map.fetchCount == 0) {
+                  map.spin(false);
                 }
-            }});
-            layer.baseStation = true;
-            // After changing zoom, do not add old markers to screen
-            if (map.fetchID == id) {
-              map.addLayer(layer);
-            } else {
-              console.log("bad id (" + map.fetchID + " != " + id + ")");
-            }
-            map.spin(false);
-          });
+              }
+            });
+          }
         }
 
         // After zooming, clear markers
         map.on('zoomstart', function(e) {
+          map.spin(true);
           map.fetchID = (map.fetchID % 9007199254740991) + 1;
+          map.fetchCount = 0;
           map.eachLayer(function(layer) {
             if (layer.baseStation) {
               map.removeLayer(layer);
             }
           });
-          map.spin(true);
-          // Use API endpoint to fetch data
-          var baseURL = "{% url 'api:base-station-list' %}?in_bbox=" + map.getBounds().toBBoxString();
         });
 
         // Attempt to get location with Geolocation API to update view

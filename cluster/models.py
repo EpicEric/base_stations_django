@@ -1,12 +1,14 @@
 from base_station.models import IdentifiedBaseStation
 from django.db import connection
-from django.contrib.gis.geos import GEOSGeometry
-from django.core.cache import cache
+from django.contrib.gis.geos import GEOSGeometry, Polygon
+from django.core.cache import caches
 import math
 
-DB_TABLE = IdentifiedBaseStation._meta.db_table
+cache = caches['db_cache']
+BS_MODEL = IdentifiedBaseStation
+DB_TABLE = BS_MODEL._meta.db_table
 MAX_CACHE_ZOOM = 16
-CLUSTER_EPS_BASE = 110.0
+CLUSTER_EPS_BASE = 70.0
 
 
 def tile_to_bbox(x_tile, y_tile, zoom_size):
@@ -19,12 +21,12 @@ def tile_to_bbox(x_tile, y_tile, zoom_size):
 
 
 class Cluster(object):
-    def __init__(self, point, zoom_size, count, mcc, mnc, lac, cid):
+    def __init__(self, point, zoom_size, base_stations):
         self.point = GEOSGeometry(point)
         self.zoom_size = zoom_size
-        self.count = count
+        self.count = len(base_stations)
         if self.count == 1:
-            self.cgi = "{}-{}-{}-{}".format(mcc, mnc, lac, cid)
+            self.cgi = base_stations.get().cgi
         else:
             self.cgi = ""
 
@@ -33,49 +35,43 @@ class Cluster(object):
             return "{} ({})".format(self.point, self.cgi)
         return "{} ({} stations)".format(self.point, self.count)
 
-    # TODO: Verify if this works properly
-    def get_base_stations(self):
-        return IdentifiedBaseStation.objects.filter(point__distance_lte=(self.point, self.cluster_eps(self.zoom_size)))
+    @property
+    def base_stations(self):
+        return BS_MODEL.objects.filter(point__distance_lte=(self.point, Cluster.cluster_eps(self.zoom_size)))
 
     @staticmethod
     def get_clusters(x_tile, y_tile, zoom_size):
         if zoom_size <= MAX_CACHE_ZOOM:
             cluster_list = cache.get_or_set(
                 'cluster/{}/{}/{}'.format(zoom_size, x_tile, y_tile),
-                lambda: Cluster.cache_clusters_from_tile(x_tile, y_tile, zoom_size),
+                lambda: Cluster.get_clusters_for_tile(x_tile, y_tile, zoom_size),
                 None)
         else:
-            cluster_list = Cluster.cache_clusters_from_tile(x_tile, y_tile, zoom_size)
+            cluster_list = Cluster.get_clusters_for_tile(x_tile, y_tile, zoom_size)
         return cluster_list
 
     @staticmethod
-    def cache_clusters_from_tile(x_tile, y_tile, zoom_size):
+    def get_clusters_for_tile(x_tile, y_tile, zoom_size):
         bbox = tile_to_bbox(x_tile, y_tile, zoom_size)
         cluster_eps = Cluster.cluster_eps(zoom_size)
+        bbox_poly = Polygon.from_bbox(bbox)
+        base_stations = BS_MODEL.objects.filter(point__contained=bbox_poly)
 
         kmeans_query = """
         SELECT
-            MIN(id) as id,
-            ST_Centroid(ST_Collect(point)) as point,
-            COUNT(*) as count,
-            MIN(mcc) as mcc,
-            MIN(mnc) as mnc,
-            MIN(lac) as lac,
-            MIN(cid) as cid
-        FROM (
-            SELECT id, point, mcc, mnc, lac, cid, ST_ClusterDBSCAN(point, eps := %s, minpoints := 1) OVER()
-                as cluster_id
-            FROM {}
-            WHERE point && ST_MakeEnvelope(%s, %s, %s, %s, 4326)
-        ) AS kmeans
-        GROUP BY cluster_id;""".format(DB_TABLE)
+            unnest(ST_ClusterWithin(point, %s))
+        FROM
+            {}
+        WHERE
+            id = ANY(%s);""".format(DB_TABLE)
         with connection.cursor() as cursor:
-            cursor.execute(kmeans_query, [cluster_eps, bbox[0], bbox[1], bbox[2], bbox[3]])
-            clusters_rows = cursor.fetchall()
+            cursor.execute(kmeans_query, [cluster_eps, [bs.id for bs in base_stations]])
+            cluster_rows = cursor.fetchall()
 
+        cluster_collections = [GEOSGeometry(row[0]) for row in cluster_rows]
         clusters = list(map(
-            lambda row: Cluster(row[1], zoom_size, row[2], row[3], row[4], row[5], row[6]),
-            clusters_rows))
+            lambda coll: Cluster(coll.centroid, zoom_size, base_stations.filter(point__contained=coll)),
+            cluster_collections))
         return clusters
 
     @staticmethod
