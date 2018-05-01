@@ -23,24 +23,33 @@ def index(request):
     context = {'location': location}
     return render(request, 'base_station/index.html', context)
 
+class OptimizationView(TemplateView):
+    template_name = 'base_station/optimization.html'
 
 class ExampleView(TemplateView):
     template_name = 'base_station/example.html'
     location = [-46.7302, -23.5572]
-    bounds = ((-46.74, -46.70), (-23.58, -23.55))
+   
+    @staticmethod
+    def get_bounds_from_parameters(request):
+        min_lat = float(request.GET['min_lat'])
+        max_lat = float(request.GET['max_lat'])
+        min_long = float(request.GET['min_long'])
+        max_long = float(request.GET['max_long'])
 
-    bss = IdentifiedBaseStation.get_base_stations_inside_bounds(
-            bounds[0][0], bounds[1][0], bounds[0][1], bounds[1][1])\
-            .filter(radio='GSM')
-
+        return ((min_lat, max_lat), (min_long, max_long))
 
 class BasinhoppingView(ExampleView):
     
     def get(self, request, *args, **kwargs):
-        solution = OptimizeLocation.basinhopping(self.bss, 3, self.bounds)
+        bounds = ExampleView.get_bounds_from_parameters(request)
+        bss = IdentifiedBaseStation.get_base_stations_inside_bounds(
+            bounds[0][0], bounds[1][0], bounds[0][1], bounds[1][1])\
+            .filter(radio='GSM')
+        solution = OptimizeLocation.basinhopping(bss, 2, bounds)
         
         solution = [list(s) for s in solution]
-        bs_coordinates = list(map(lambda bs: [bs.point.x, bs.point.y], self.bss))
+        bs_coordinates = list(map(lambda bs: [bs.point.x, bs.point.y], bss))
 
         context = {
             'location': self.location,
@@ -52,10 +61,14 @@ class BasinhoppingView(ExampleView):
 class SlsqpView(ExampleView):
     
     def get(self, request, *args, **kwargs):
-        solution = OptimizeLocation.slsqp(self.bss, 3, self.bounds)
+        bounds = ExampleView.get_bounds_from_parameters(request)
+        bss = IdentifiedBaseStation.get_base_stations_inside_bounds(
+            bounds[0][0], bounds[1][0], bounds[0][1], bounds[1][1])\
+            .filter(radio='GSM')
+        solution = OptimizeLocation.slsqp(bss, 2, bounds)
         
         solution = [list(s) for s in solution]
-        bs_coordinates = list(map(lambda bs: [bs.point.x, bs.point.y], self.bss))
+        bs_coordinates = list(map(lambda bs: [bs.point.x, bs.point.y], bss))
 
         context = {
             'location': self.location,
@@ -64,12 +77,16 @@ class SlsqpView(ExampleView):
         return render(request, self.template_name, context)
 
 class TaguchiView(ExampleView):
-    
     def get(self, request, *args, **kwargs):
-        solution = OptimizeLocation.taguchi(self.bss, 2, self.bounds)
-        
+        bounds = ExampleView.get_bounds_from_parameters(request)
+        bss = IdentifiedBaseStation.get_base_stations_inside_bounds(
+            bounds[0][0], bounds[1][0], bounds[0][1], bounds[1][1])\
+            .filter(radio='GSM')
+
+        solution = OptimizeLocation.taguchi(bss, 2, bounds)
+
         solution = [list(s) for s in solution]
-        bs_coordinates = list(map(lambda bs: [bs.point.x, bs.point.y], self.bss))
+        bs_coordinates = list(map(lambda bs: [bs.point.x, bs.point.y], bss))
 
         context = {
             'location': self.location,
@@ -83,7 +100,7 @@ class HeatMapView(TemplateView):
     
     def get(self, request, *args, **kwargs):
         location = [-46.7302, -23.5572]
-        bounds = ((-46.72, -46.71), (-23.57, -23.56))
+        bounds = ExampleView.ExampleView.get_bounds_from_parameters(request)
         bss = IdentifiedBaseStation.get_base_stations_inside_bounds(
             bounds[0][0], bounds[1][0], bounds[0][1], bounds[1][1])\
             .filter(radio='GSM')

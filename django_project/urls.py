@@ -17,7 +17,9 @@ from django.contrib import admin
 from django.urls import include, path
 from django.views.generic import TemplateView
 
-from base_station.views import index, BasinhoppingView, HeatMapView, SlsqpView, TaguchiView
+from base_station.views import (
+     index, BasinhoppingView, HeatMapView, SlsqpView, 
+     TaguchiView, OptimizationView)
 from .api import router
 
 
@@ -26,8 +28,9 @@ urlpatterns = [
     path('api/', include((router.urls, 'django_project'), namespace='api')),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     path('', index, name='index'),
-    path('example/basinhopping', BasinhoppingView.as_view()),
-    path('example/slsqp', SlsqpView.as_view()),
-    path('example/taguchi', TaguchiView.as_view()),
-    path('heat-map/', HeatMapView.as_view())
+    path('example/basinhopping', BasinhoppingView.as_view(), name='basinhopping'),
+    path('example/slsqp', SlsqpView.as_view(), name='slsqp'),
+    path('example/taguchi', TaguchiView.as_view(), name='taguchi'),
+    path('heat-map/', HeatMapView.as_view(), name='heat-map'),
+    path('optimization/', OptimizationView.as_view())
 ]
