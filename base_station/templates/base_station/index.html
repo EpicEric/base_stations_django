@@ -1,7 +1,6 @@
 {% load leaflet_tags %}
 <html>
   <head>
-    <script type="module">export {Spinner};</script>
     {% leaflet_js %}
     {% leaflet_css %}
     <style>
@@ -16,12 +15,25 @@
       window.addEventListener("map:init", function(event) {
         var map = event.detail.map;
         map.setMaxZoom(19);
-        map.fetchID = 0;
+
+        // Add tiling layer to fetch clusters when viewing a new tile
+        var addTileLayer = function() {
+          map.fetchID = 0;
+          var tileLayer = L.gridLayer();
+          tileLayer.on('tileload', function(e) {
+            var tile = e.coords;
+            // Use API endpoint to fetch data
+            var baseURL = "{% url 'api:cluster-list' %}?zoom_size=" + tile.z + "&x_tile=" + tile.x + "&y_tile=" + tile.y;
+            var fetchID = map.fetchID;
+            fetchBaseStation(baseURL, fetchID);
+          });
+          map.addLayer(tileLayer);
+        }
 
         // Function to fetch data from API
         var fetchBaseStation = function(url, id) {
-          // After changing pan/zoom, stop fetching from previous screen
           if (map.fetchID == id) {
+            map.fetchCount = map.fetchCount + 1;
             fetch(url).then(function(resp) {
               // Convert to GeoJSON
               return resp.json();
@@ -30,45 +42,51 @@
               layer = L.geoJson(data, {
                 onEachFeature: function onEachFeature(feature, marker) {
                   var props = feature.properties;
-                  marker.bindTooltip(`${props.cgi} (${props.radio})`);
+                  if (props.count > 1) {
+                    if (props.count > 100) {
+                      marker.setIcon(customClusterBig);
+                    } else if (props.count > 20) {
+                      marker.setIcon(customClusterMedium);
+                    } else {
+                      marker.setIcon(customClusterSmall);
+                    }
+                    marker.bindTooltip(`${props.count}`);
+                  } else {
+                    marker.bindTooltip(`${props.cgi}`);
+                  }
               }});
-              map.markerClusterGroup.addLayer(layer);
-              return data["next"];
-            // Try next page of API
-            }).then(function(new_url) {
-              if (new_url) {
-                fetchBaseStation(new_url, id);
-              } else {
-                map.spin(false);
+              layer.baseStation = true;
+              map.fetchCount = map.fetchCount - 1;
+              // After changing zoom, do not add old markers to screen
+              if (map.fetchID == id) {
+                map.addLayer(layer);
+                if (map.fetchCount == 0) {
+                  map.spin(false);
+                }
               }
             });
-          } else {
-            map.spin(false);
           }
         }
 
-        // After panning/zooming, clear markers and fetch new data
-        map.on('moveend', function(e) {
+        // After zooming, clear markers
+        map.on('zoomstart', function(e) {
+          map.spin(true);
           map.fetchID = (map.fetchID % 9007199254740991) + 1;
+          map.fetchCount = 0;
           map.eachLayer(function(layer) {
             if (layer.baseStation) {
               map.removeLayer(layer);
             }
           });
-          // Use API endpoint to fetch data
-          var baseURL = "{% url 'api:base-station-list' %}?in_bbox=" + map.getBounds().toBBoxString();
-          map.spin(true);
-          map.markerClusterGroup = L.markerClusterGroup();
-          map.markerClusterGroup.baseStation = true;
-          map.addLayer(map.markerClusterGroup);
-          fetchBaseStation(baseURL, map.fetchID);
         });
 
         // Attempt to get location with Geolocation API to update view
         map.locate().on("locationfound", function(e) {
           map.setView([e.latitude, e.longitude], 17);
+          addTileLayer();
         }).on("locationerror", function(e) {
           map.setView(baseLocation, 17);
+          addTileLayer();
         });
       });
     </script>
