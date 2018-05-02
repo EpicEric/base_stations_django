@@ -28,7 +28,6 @@ class OptimizationView(TemplateView):
 
 class ExampleView(TemplateView):
     template_name = 'base_station/example.html'
-    location = [-46.7302, -23.5572]
    
     @staticmethod
     def get_bounds_from_parameters(request):
@@ -43,6 +42,8 @@ class BasinhoppingView(ExampleView):
     
     def get(self, request, *args, **kwargs):
         bounds = ExampleView.get_bounds_from_parameters(request)
+        location = [bounds[0][0] + (bounds[0][1] - bounds[0][0])/2, 
+                    bounds[1][0] + (bounds[1][1] - bounds[1][0])/2]
         bss = IdentifiedBaseStation.get_base_stations_inside_bounds(
             bounds[0][0], bounds[1][0], bounds[0][1], bounds[1][1])\
             .filter(radio='GSM')
@@ -52,7 +53,7 @@ class BasinhoppingView(ExampleView):
         bs_coordinates = list(map(lambda bs: [bs.point.x, bs.point.y], bss))
 
         context = {
-            'location': self.location,
+            'location': location,
             'base_stations': bs_coordinates,
             'suggestions': solution}
         return render(request, self.template_name, context)
@@ -62,6 +63,8 @@ class SlsqpView(ExampleView):
     
     def get(self, request, *args, **kwargs):
         bounds = ExampleView.get_bounds_from_parameters(request)
+        location = [bounds[0][0] + (bounds[0][1] - bounds[0][0])/2, 
+            bounds[1][0] + (bounds[1][1] - bounds[1][0])/2]
         bss = IdentifiedBaseStation.get_base_stations_inside_bounds(
             bounds[0][0], bounds[1][0], bounds[0][1], bounds[1][1])\
             .filter(radio='GSM')
@@ -71,7 +74,7 @@ class SlsqpView(ExampleView):
         bs_coordinates = list(map(lambda bs: [bs.point.x, bs.point.y], bss))
 
         context = {
-            'location': self.location,
+            'location': location,
             'base_stations': bs_coordinates,
             'suggestions': solution}
         return render(request, self.template_name, context)
@@ -79,6 +82,8 @@ class SlsqpView(ExampleView):
 class TaguchiView(ExampleView):
     def get(self, request, *args, **kwargs):
         bounds = ExampleView.get_bounds_from_parameters(request)
+        location = [bounds[0][0] + (bounds[0][1] - bounds[0][0])/2, 
+                    bounds[1][0] + (bounds[1][1] - bounds[1][0])/2]
         bss = IdentifiedBaseStation.get_base_stations_inside_bounds(
             bounds[0][0], bounds[1][0], bounds[0][1], bounds[1][1])\
             .filter(radio='GSM')
@@ -89,7 +94,7 @@ class TaguchiView(ExampleView):
         bs_coordinates = list(map(lambda bs: [bs.point.x, bs.point.y], bss))
 
         context = {
-            'location': self.location,
+            'location': location,
             'base_stations': bs_coordinates,
             'suggestions': solution}
         return render(request, self.template_name, context)
