@@ -1,8 +1,11 @@
 import math
 import numpy as np
 
-def orthogonal_array():
-    return np.array([[1,1,1,2,2,2,3,3,3],[1,2,3,1,2,3,1,2,3],[1,2,3,2,3,1,3,1,2],[1,3,2,2,1,3,3,2,1]])
+def orthogonal_array(params_qty):
+    if params_qty == 2:
+        return np.array([[1,1,1,2,2,2,3,3,3], [1,2,3,1,2,3,1,2,3]])
+    elif params_qty == 4:
+        return np.array([[1,1,1,2,2,2,3,3,3],[1,2,3,1,2,3,1,2,3],[1,2,3,2,3,1,3,1,2],[1,3,2,2,1,3,3,2,1]])
 
 def mapping_function(level, s, v, beta, min_value, max_value):
     if 1 <= level and level <= math.ceil(s/2) -1:       
@@ -26,7 +29,7 @@ def taguchi(limits, s, objective, epsilon):
         v[i] = (limits[i][0] + limits[i][1])/2
         beta[i] = (limits[i][1] - limits[i][0])/(s + 1)
     
-    oa = orthogonal_array()
+    oa = orthogonal_array(params_qty)
     experiments_qty = len(oa[0])
     iterations = 0
     while any(b > 0.001 for b in beta):
@@ -39,7 +42,8 @@ def taguchi(limits, s, objective, epsilon):
             parameter_array[i] = list(map(lambda x: level_to_parameter[i][x-1], oa[i]))
 
         y = [objective(list(i)) for i in zip(*parameter_array)]
-        sn = [10 * math.log10(i*i) for i in y]
+        #sn = [10 * math.log10(i*i) for i in y]
+        sn = y
         sn_mean = np.zeros((len(oa), s))
 
         for i in range(params_qty):
