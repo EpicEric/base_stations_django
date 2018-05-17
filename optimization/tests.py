@@ -26,27 +26,105 @@ class FindBestLocationsTestCase(TestCase):
 
 
 class TaguchiTestCase(TestCase):
+  
     @classmethod
     def setUpClass(cls):
         print(cls.__name__)
 
     @timing
     def test_himmelblaus(self):
-        taguchi_result = taguchi([[-5,5],[-5,5]], 3, himmelblaus.symmetrical_function, 0.8)
+        taguchi_result = taguchi(himmelblaus.domain, 3, himmelblaus.symmetrical_function, 0.8)
         is_minimum_correct(taguchi_result['x'], himmelblaus.minimum)
 
     @timing
     def test_three_hump_camel(self):
-        taguchi_result = taguchi([[-1.5,4],[-3,4]], 3, three_hump_camel.symmetrical_function, 0.8)
+        taguchi_result = taguchi(three_hump_camel.domain, 3, three_hump_camel.symmetrical_function, 0.8)
         is_minimum_correct(taguchi_result['x'], three_hump_camel.minimum)
+  
     @timing
     def test_easom(self):
-        taguchi_result = taguchi([[-1.5,4],[-3,4]], 3, easom.symmetrical_function, 0.8)
+        taguchi_result = taguchi(easom.domain, 3, easom.symmetrical_function, 0.8)
         is_minimum_correct(taguchi_result['x'], easom.minimum)
+  
     @timing
     def test_mccormick(self):
-        taguchi_result = taguchi([[-1.5,4],[-3,4]], 3, mccormick.symmetrical_function, 0.8)
+        taguchi_result = taguchi(mccormick.domain, 3, mccormick.symmetrical_function, 0.8)
         is_minimum_correct(taguchi_result['x'], mccormick.minimum)
+  
+    @timing
+    def test_schaffer4(self):
+        taguchi_result = taguchi(schaffer4.domain, 3, schaffer4.symmetrical_function, 0.8)
+        is_minimum_correct(taguchi_result['x'], schaffer4.minimum)
+   
+    @timing
+    def test_matyas(self):
+        taguchi_result = taguchi(matyas.domain, 3, matyas.symmetrical_function, 0.8)
+        is_minimum_correct(taguchi_result['x'], matyas.minimum)
+
+
+class BasinhoppingTestCase(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        print(cls.__name__)
+
+    @timing
+    def test_himmelblaus(self):
+        minimizer_kwargs = {"method":"L-BFGS-B", "bounds": himmelblaus.domain}
+        basinhopping_result = basinhopping(func = himmelblaus.function,
+                                x0 = himmelblaus.initial_guess(),
+                                minimizer_kwargs = minimizer_kwargs,
+                                niter=10)
+        self.assertTrue(is_minimum_correct(basinhopping_result.x, himmelblaus.minimum))
+
+    @timing
+    def test_three_hump_camel(self):
+        minimizer_kwargs = {"method":"L-BFGS-B", "bounds": three_hump_camel.domain}
+        basinhopping_result = basinhopping(func = three_hump_camel.function,
+                                x0 = three_hump_camel.initial_guess(),
+                                minimizer_kwargs = minimizer_kwargs,
+                                niter=10)
+        self.assertTrue(is_minimum_correct(basinhopping_result.x, three_hump_camel.minimum))
+  
+    @skip("Do not work")
+    @timing
+    def test_easom(self):
+        minimizer_kwargs = {"method":"L-BFGS-B", "bounds": easom.domain}
+        basinhopping_result = basinhopping(func = easom.function,
+                                x0 = easom.initial_guess(),
+                                minimizer_kwargs = minimizer_kwargs,
+                                niter=20)
+        self.assertTrue(is_minimum_correct(basinhopping_result.x, easom.minimum))
+   
+    @skip("Do not work")
+    @timing
+    def test_mccormick(self):
+        minimizer_kwargs = {"method":"L-BFGS-B", "bounds": mccormick.domain}
+        basinhopping_result = basinhopping(func = mccormick.function,
+                                x0 = mccormick.initial_guess(),
+                                minimizer_kwargs = minimizer_kwargs,
+                                niter=10)
+        self.assertTrue(is_minimum_correct(basinhopping_result.x, mccormick.minimum))
+  
+    @skip("Do not work")
+    @timing
+    def test_schaffer4(self):
+        minimizer_kwargs = {"method":"L-BFGS-B", "bounds": schaffer4.domain}
+        basinhopping_result = basinhopping(func = schaffer4.function,
+                                x0 = schaffer4.initial_guess(),
+                                minimizer_kwargs = minimizer_kwargs,
+                                niter=10)
+        import pdb; pdb.set_trace()
+        self.assertTrue(is_minimum_correct(basinhopping_result.x, schaffer4.minimum))
+         
+    @timing
+    def test_matyas(self):
+        minimizer_kwargs = {"method":"L-BFGS-B", "bounds": matyas.domain}
+        basinhopping_result = basinhopping(func = matyas.function,
+                                x0 = matyas.initial_guess(),
+                                minimizer_kwargs = minimizer_kwargs,
+                                niter=10)
+        self.assertTrue(is_minimum_correct(basinhopping_result.x, matyas.minimum))
+
 
 class SlsqpTestCase(TestCase):
 
@@ -71,6 +149,7 @@ class SlsqpTestCase(TestCase):
                                 bounds=three_hump_camel.domain,
                                 options={'eps': 0.001})
         self.assertTrue(is_minimum_correct(slsqp_result.x, three_hump_camel.minimum))
+ 
     @skip("Do not work")
     @timing
     def test_easom(self):
@@ -80,15 +159,25 @@ class SlsqpTestCase(TestCase):
                                 bounds=easom.domain,
                                 options={'eps': 0.001})
         self.assertTrue(is_minimum_correct(slsqp_result.x, easom.minimum))
+ 
     @skip("Do not work")
     @timing
-    def test_mccormick(self):
-        slsqp_result = minimize(fun = mccormick.function,
-                                x0 = [mccormick.initial_guess()],
+    def test_schaffer4(self):
+        slsqp_result = minimize(fun = schaffer4.function,
+                                x0 = [schaffer4.initial_guess()],
                                 method='SLSQP',
-                                bounds=mccormick.domain,
+                                bounds=schaffer4.domain,
                                 options={'eps': 0.001})
-        self.assertTrue(is_minimum_correct(slsqp_result.x, mccormick.minimum))
+        self.assertTrue(is_minimum_correct(slsqp_result.x, schaffer4.minimum))
+ 
+    @timing
+    def test_matyas(self):
+        slsqp_result = minimize(fun = matyas.function,
+                                x0 = [matyas.initial_guess()],
+                                method='SLSQP',
+                                bounds=matyas.domain,
+                                options={'eps': 0.001})
+        self.assertTrue(is_minimum_correct(slsqp_result.x, matyas.minimum))
 
 
 class OptimizationTestFunction():
@@ -107,7 +196,7 @@ class OptimizationTestFunction():
 himmelblaus = OptimizationTestFunction(
     function = lambda x: (x[0]**2 + x[1] - 11) ** 2 + (x[0] + x[1]**2 - 7) ** 2,
     domain = [[-5, 5], [-5, 5]],
-    minimum = [[3,2], [-2.805118, 3.131312]])
+    minimum = [[3,2], [-2.805118, 3.131312], [-3.779310, -3.283186]])
 
 three_hump_camel = OptimizationTestFunction(
     function = lambda x: 2 * x[0] * x[0] - 1.05*x[0]**4 + (x[0]**6)/6 + x[0]*x[1] + x[1]*x[1],
@@ -123,6 +212,16 @@ mccormick = OptimizationTestFunction(
     function = lambda x: math.sin(x[0] + x[1]) + (x[0]- x[1]) ** 2 - 1.5 * x[0] + 2.5 * x[1] + 1,
     domain = [[-1.5,4],[-3,4]],
     minimum = [[-0.54719, -1.54719]])
+
+schaffer4 = OptimizationTestFunction(
+    function = lambda x: 0.5 + ((math.cos(math.sin(abs(x[0]**2-x[1]**2))))**2-0.5)/((1+0.001*(x[0]**2+x[1]**2))**2),
+    domain = [[-100, 100], [-100, 100]],
+    minimum = [[0, 1.25313]])
+
+matyas = OptimizationTestFunction(
+    function = lambda x: 0.26*(x[0]**2+x[1]**2)-0.48*x[0]*x[1],
+    domain = [[-10, 10], [-10, 10]],
+    minimum = [[0,0]])
 
 # eggholder = OptimizationTestFunction(
 #     function = lambda x: -(x[1]+47)*math.sin(math.sqrt(abs(x[0]/2+x[1]+47)-x[0]*math.sin(math.sqrt(abs(x[0]-x[1]+47))))),
