@@ -52,7 +52,7 @@ class BasinhoppingView(ExampleView):
         
         solution = [list(s) for s in solution]
         bs_coordinates = list(map(lambda bs: [bs.point.x, bs.point.y], bss))
-
+        print(solution)
         context = {
             'location': location,
             'base_stations': bs_coordinates,
@@ -106,7 +106,7 @@ class HeatMapView(TemplateView):
     
     def get(self, request, *args, **kwargs):
         location = [-46.7302, -23.5572]
-        bounds = ExampleView.ExampleView.get_bounds_from_parameters(request)
+        bounds = ExampleView.get_bounds_from_parameters(request)
         bss = IdentifiedBaseStation.get_base_stations_inside_bounds(
             bounds[0][0], bounds[1][0], bounds[0][1], bounds[1][1])\
             .filter(radio='GSM')
@@ -117,4 +117,23 @@ class HeatMapView(TemplateView):
         context = {'location': location,
                    'base_stations': bs_coordinates,
                    'heatmap': heatMap.generate_heatmap()}
+        return render(request, self.template_name, context)
+
+class FSPLView(ExampleView):
+
+    def get(self, request, *args, **kwargs):
+        location = [-46.7302, -23.5572]
+        bounds = ExampleView.get_bounds_from_parameters(request)
+        bss = IdentifiedBaseStation.get_base_stations_inside_bounds(
+            bounds[0][0], bounds[1][0], bounds[0][1], bounds[1][1])\
+            .filter(radio='GSM')
+        bs_coordinates = list(map(lambda bs: [bs.point.x, bs.point.y], bss))
+
+        from optimization.fspl import objective
+        solution = OptimizeLocation.slsqp_fspl(bss, 1, bounds)
+        solution = [list(s) for s in solution]
+        context = {
+            'location': location,
+            'base_stations': bs_coordinates,
+            'suggestions': solution}
         return render(request, self.template_name, context)

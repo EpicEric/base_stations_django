@@ -18,7 +18,7 @@ from django.urls import include, path
 from django.views.generic import TemplateView
 
 from base_station.views import (
-     index, BasinhoppingView, HeatMapView, SlsqpView, 
+     index, BasinhoppingView, FSPLView, HeatMapView, SlsqpView, 
      TaguchiView, OptimizationView)
 from .api import router
 
@@ -32,5 +32,6 @@ urlpatterns = [
     path('optimization/slsqp', SlsqpView.as_view(), name='slsqp'),
     path('optimization/taguchi', TaguchiView.as_view(), name='taguchi'),
     path('heat-map/', HeatMapView.as_view(), name='heat-map'),
-    path('optimization/', OptimizationView.as_view())
+    path('optimization/', OptimizationView.as_view()),
+    path('fspl/', FSPLView.as_view())
 ]
