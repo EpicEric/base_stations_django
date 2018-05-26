@@ -33,6 +33,19 @@ class OptimizeLocation():
         print(solution.x)
         return OptimizeLocation.grouper(solution.x, 2)
 
+    def slsqp_fspl(base_stations, number, bounds):
+        from .fspl import objective
+        x = np.linspace(bounds[0][0], bounds[0][1], number)
+        y = (bounds[1][1] - bounds[1][0])/2 + bounds[1][0]
+        x0 = [Point(xi, y) for xi in x]
+
+        solution = minimize(lambda bss: objective(base_stations, bss),
+                            x0,
+                            method='SLSQP',
+                            bounds=bounds * number,
+                            options={'eps': 0.1})
+        return OptimizeLocation.grouper(solution.x, 2)
+
     def slsqp(base_stations, number, bounds):
         x = np.linspace(bounds[0][0], bounds[0][1], number)
         y = (bounds[1][1] - bounds[1][0])/2 + bounds[1][0]
