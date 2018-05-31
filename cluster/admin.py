@@ -1,3 +1,7 @@
-from django.contrib import admin
+from django.contrib.gis import admin
+from leaflet.admin import LeafletGeoAdmin
 
-# Register your models here.
+from cluster.models import BaseStationCluster
+
+
+admin.site.register(BaseStationCluster, LeafletGeoAdmin)
