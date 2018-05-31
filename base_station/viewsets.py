@@ -19,4 +19,5 @@ class IdentifiedBaseStationViewSet(ModelViewSet):
     pagination_class = BaseStationPagination
     bbox_filter_field = 'point'
     filter_backends = (InBBoxFilter, DistanceToPointFilter, DjangoFilterBackend)
+    filter_fields = ('radio',)
     bbox_filter_include_overlapping = True
