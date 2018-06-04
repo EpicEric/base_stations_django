@@ -146,12 +146,12 @@ LEAFLET_CONFIG = {
                    'leaflet_plugin/js/leaflet.spin.min.js'],
             'auto-include': True,
         },
-        # 'Leaflet.markercluster': {
-        #     'js':  ['leaflet_plugin/js/leaflet.markercluster.js'],
-        #     'css': ['leaflet_plugin/css/MarkerCluster.css',
-        #             'leaflet_plugin/css/MarkerCluster.Default.css'],
-        #     'auto-include': True,
-        # },
+        'Leaflet.markercluster': {
+            'js':  ['leaflet_plugin/js/leaflet.markercluster.js'],
+            'css': ['leaflet_plugin/css/MarkerCluster.css',
+                    'leaflet_plugin/css/MarkerCluster.Default.css'],
+            'auto-include': True,
+        },
         'leaflet.customcluster': {
             'js': ['leaflet_plugin/js/leaflet.customcluster.js'],
             'auto-include': True,

@@ -4,8 +4,9 @@ from django.http import HttpResponse
 import logging
 
 from base_station.models import IdentifiedBaseStation
+from base_station.use_cases.heat_map import HeatMap
+from cluster.models import MAX_CACHE_ZOOM_SIZE
 from optimization.find_best_locations import OptimizeLocation
-from base_station.use_cases.heat_map import HeatMap 
 
 import numpy as np
 import itertools
@@ -20,7 +21,7 @@ def index(request):
     except Exception as e:
         logger.warning("[WARNING] Couldn't get location (using default location instead): {}".format(str(e)))
         location = [-23.5572, -46.7302]
-    context = {'location': location}
+    context = {'location': location, 'max_zoom': MAX_CACHE_ZOOM_SIZE}
     return render(request, 'base_station/index.html', context)
 
 class OptimizationView(TemplateView):

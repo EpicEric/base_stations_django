@@ -15,25 +15,40 @@
       window.addEventListener("map:init", function(event) {
         var map = event.detail.map;
         map.setMaxZoom(19);
+        map.fetchID = 0;
 
-        // Add tiling layer to fetch clusters when viewing a new tile
-        var addTileLayer = function() {
-          map.fetchID = 0;
-          var tileLayer = L.gridLayer();
-          tileLayer.on('tileload', function(e) {
-            var tile = e.coords;
-            // Use API endpoint to fetch data
-            var baseURL = "{% url 'api:cluster-list' %}?zoom_size=" + tile.z + "&x_tile=" + tile.x + "&y_tile=" + tile.y;
-            var fetchID = map.fetchID;
-            fetchBaseStation(baseURL, fetchID);
-          });
-          map.addLayer(tileLayer);
+        // Function to fetch base stations from API
+        var fetchBaseStations = function(url, id) {
+          // After changing pan/zoom, stop fetching from previous screen
+          if (map.fetchID == id) {
+            fetch(url).then(function(resp) {
+              // Convert to GeoJSON
+              return resp.json();
+            }).then(function(data) {
+              // Iterate over every feature and add to map
+              layer = L.geoJson(data, {
+                onEachFeature: function onEachFeature(feature, marker) {
+                  var props = feature.properties;
+                  marker.bindTooltip(`${props.cgi} (${props.radio})`);
+              }});
+              map.markerClusterGroup.addLayer(layer);
+              return data["next"];
+            // Try next page of API
+            }).then(function(new_url) {
+              if (new_url) {
+                fetchBaseStations(new_url, id);
+              } else {
+                map.addLayer(map.markerClusterGroup);
+                map.spin(false);
+              }
+            });
+          }
         }
 
-        // Function to fetch data from API
-        var fetchBaseStation = function(url, id) {
+        // Function to fetch clusters from API
+        var fetchClusters = function(url, id) {
+          // After changing pan/zoom, stop fetching from previous screen
           if (map.fetchID == id) {
-            map.fetchCount = map.fetchCount + 1;
             fetch(url).then(function(resp) {
               // Convert to GeoJSON
               return resp.json();
@@ -52,41 +67,53 @@
                     }
                     marker.bindTooltip(`${props.count}`);
                   } else {
-                    marker.bindTooltip(`${props.cgi}`);
+                    marker.bindTooltip(`${props.data}`);
                   }
               }});
-              layer.baseStation = true;
-              map.fetchCount = map.fetchCount - 1;
-              // After changing zoom, do not add old markers to screen
-              if (map.fetchID == id) {
-                map.addLayer(layer);
-                if (map.fetchCount == 0) {
-                  map.spin(false);
-                }
+              layer.removeOnPan = true;
+              map.addLayer(layer);
+              return data["next"];
+            // Try next page of API
+            }).then(function(new_url) {
+              if (new_url) {
+                fetchClusters(new_url, id);
+              } else {
+                map.spin(false);
               }
             });
           }
         }
 
         // After zooming, clear markers
-        map.on('zoomstart', function(e) {
+        map.on('moveend', function(e) {
           map.spin(true);
           map.fetchID = (map.fetchID % 9007199254740991) + 1;
-          map.fetchCount = 0;
           map.eachLayer(function(layer) {
-            if (layer.baseStation) {
+            if (layer.removeOnPan) {
               map.removeLayer(layer);
             }
           });
+          var zoom = map.getZoom();
+          var bbox = map.getBounds().toBBoxString();
+          console.log(zoom);
+          if (zoom <= {{ max_zoom }}) {
+            console.log("c");
+            var baseURL = "{% url 'api:cluster-list' %}?zoom_size=" + zoom + "&in_bbox=" + bbox;
+            fetchClusters(baseURL, map.fetchID);
+          } else {
+            console.log("bs");
+            map.markerClusterGroup = L.markerClusterGroup({"showCoverageOnHover": false});
+            map.markerClusterGroup.removeOnPan = true;
+            var baseURL = "{% url 'api:base-station-list' %}?in_bbox=" + bbox;
+            fetchBaseStations(baseURL, map.fetchID);
+          }
         });
 
         // Attempt to get location with Geolocation API to update view
         map.locate().on("locationfound", function(e) {
           map.setView([e.latitude, e.longitude], 17);
-          addTileLayer();
         }).on("locationerror", function(e) {
           map.setView(baseLocation, 17);
-          addTileLayer();
         });
       });
     </script>
