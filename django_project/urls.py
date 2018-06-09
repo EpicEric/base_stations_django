@@ -17,9 +17,8 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import include, path
 
-from base_station.views import (
-     BasinhoppingView, FSPLView, HeatMapView, SlsqpView,
-     TaguchiView, OptimizationView)
+from base_station.views import (BasinhoppingView, HeatMapView, SlsqpView,
+                                TaguchiView)
 from map.views import index
 from .api import router
 
@@ -38,8 +37,8 @@ urlpatterns = [
     path('optimization/slsqp', SlsqpView.as_view(), name='slsqp'),
     path('optimization/taguchi', TaguchiView.as_view(), name='taguchi'),
     path('heat-map/', HeatMapView.as_view(), name='heat-map'),
-    path('optimization/', OptimizationView.as_view()),
-    path('fspl/', FSPLView.as_view())
+    # path('optimization/', OptimizationView.as_view()),
+    # path('fspl/', FSPLView.as_view())
 
     # Index URL
     path('', index, name='index'),

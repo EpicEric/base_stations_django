@@ -1,71 +1,25 @@
 from django.contrib.gis.geos import Point
-from functools import reduce
 import numpy as np
-from scipy.optimize import minimize, basinhopping
 from optimization.models import OptimizedBaseStation
-from optimization.taguchi import taguchi
+from optimization.utils import grouper
 
 class OptimizeLocation():
 
-    @staticmethod
-    def grouper(iterable, group_size):
-        return list(zip(*(iter(iterable),) * group_size))
+    def __init__(self, current_bss_list, bounds,
+                 optimization_method, objective):
+        self.current_bss_list = current_bss_list
+        self.bounds = bounds
+        self.objective = objective
+        self.optimization_method = optimization_method
 
-    @staticmethod
-    def objective(covered_area_by_bs, new_bss):
-        bs_objects = [OptimizedBaseStation(point = Point(bs[0], bs[1]))
-                    for bs in OptimizeLocation.grouper(new_bss, 2)]
-        new_bss_covered_area = map(lambda bs: bs.covered_area, bs_objects)
-        new_bss_union = reduce(lambda bs0, bs1: bs0 | bs1, new_bss_covered_area)
-        bss_union = reduce(lambda x, y: x | y, covered_area_by_bs)
-        total_area = (new_bss_union | bss_union).area
-        return -(total_area)
-
-    def basinhopping(base_stations, number, bounds):
-        x = np.linspace(bounds[0][0], bounds[0][1], number)
-        y = (bounds[1][1] - bounds[1][0])/2 + bounds[1][0]
+    def find_best_locations(self):
+        x = np.linspace(self.bounds[0][0], self.bounds[0][1], len(self.bounds)/2)
+        y = (self.bounds[1][1] - self.bounds[1][0])/2 + self.bounds[1][0]
         x0 = [Point(xi, y) for xi in x]
 
-        minimizer_kwargs = {"method":"L-BFGS-B", "bounds": bounds * number}
-        covered_area_by_bs = list(map(lambda bs: bs.covered_area, base_stations))
-        solution = basinhopping(lambda x: OptimizeLocation.objective(covered_area_by_bs, x), x0, minimizer_kwargs=minimizer_kwargs,
-                    niter=10)
-        print(solution.x)
-        return OptimizeLocation.grouper(solution.x, 2)
-
-    def slsqp_fspl(base_stations, number, bounds):
-        from .fspl import objective
-        x = np.linspace(bounds[0][0], bounds[0][1], number)
-        y = (bounds[1][1] - bounds[1][0])/2 + bounds[1][0]
-        x0 = [Point(xi, y) for xi in x]
-
-        solution = minimize(lambda bss: objective(base_stations, bss),
-                            x0,
-                            method='SLSQP',
-                            bounds=bounds * number,
-                            options={'eps': 0.1})
-        return OptimizeLocation.grouper(solution.x, 2)
-
-    def slsqp(base_stations, number, bounds):
-        x = np.linspace(bounds[0][0], bounds[0][1], number)
-        y = (bounds[1][1] - bounds[1][0])/2 + bounds[1][0]
-        x0 = [Point(xi, y) for xi in x]
-
-        covered_area_by_bs = list(map(lambda bs: bs.covered_area, base_stations))
-
-        solution = minimize(lambda bss: OptimizeLocation.objective(covered_area_by_bs, bss),
-                            x0,
-                            method='SLSQP',
-                            bounds=bounds * number,
-                            options={'eps': 0.1})
-        return OptimizeLocation.grouper(solution.x, 2)
-
-    def taguchi(base_stations, number, bounds):
-        x = np.linspace(bounds[0][0], bounds[0][1], number)
-        y = (bounds[1][1] - bounds[1][0])/2 + bounds[1][0]
-        x0 = [Point(xi, y) for xi in x]
-
-        covered_area_by_bs = list(map(lambda bs: bs.covered_area, base_stations))
-        solution = taguchi(bounds * number, 3, lambda bss: OptimizeLocation.objective(covered_area_by_bs, bss), 0.9)
-        print(solution)
-        return OptimizeLocation.grouper(solution['x'], 2)
+        solution = self.optimization_method.minimize(
+            lambda new_bss_location: self.objective(self.current_bss_list, 
+                                                    new_bss_location),
+            self.bounds,
+            x0)
+        return grouper(solution.x, 2)
