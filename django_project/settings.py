@@ -38,12 +38,21 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.gis',
 
+    # API
     'django_filters',
-    'leaflet',
     'rest_framework',
     'rest_framework.authtoken',
     'rest_framework_gis',
 
+    # Frontend
+    'leaflet',
+
+    # OAuth2
+    'oauth2_provider',
+    'social_django',
+    'rest_framework_social_oauth2',
+
+    # Apps
     'geography',
     'base_station',
     'cluster',
@@ -73,6 +82,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'social_django.context_processors.backends',
+                'social_django.context_processors.login_redirect',
             ],
         },
     },
@@ -130,6 +141,8 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.TokenAuthentication',
+        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
+        'rest_framework_social_oauth2.authentication.SocialAuthentication',
     ],
     'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend',
@@ -138,6 +151,17 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly',
     ],
 }
+
+AUTHENTICATION_BACKENDS = (
+    # Default auth
+    'django.contrib.auth.backends.ModelBackend',
+
+    # django-rest-framework-social-oauth2
+    'rest_framework_social_oauth2.backends.DjangoOAuth2',
+
+    # GitHub OAuth2
+    'social_core.backends.github.GithubOAuth2',
+)
 
 LEAFLET_CONFIG = {
     'PLUGINS': {

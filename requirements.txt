@@ -1,8 +1,9 @@
 Django==2.0.2
-django-leaflet==0.23.0
 django-filter==1.1.0
+django-leaflet==0.23.0
 djangorestframework==3.7.7
 djangorestframework-gis==0.12
+django-rest-framework-social-oauth2==1.1.0
 earthengine-api==0.1.135
 geoip2==2.7.0
 geopy==1.12.0

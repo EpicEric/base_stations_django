@@ -27,6 +27,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include((router.urls, 'django_project'), namespace='api')),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    path('oauth2/', include('rest_framework_social_oauth2.urls')),
     path('', index, name='index'),
     path('optimization/basinhopping', BasinhoppingView.as_view(), name='basinhopping'),
     path('optimization/slsqp', SlsqpView.as_view(), name='slsqp'),
