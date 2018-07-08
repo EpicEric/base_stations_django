@@ -14,24 +14,32 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+from django.contrib.auth import views as auth_views
 from django.urls import include, path
-from django.views.generic import TemplateView
 
 from base_station.views import (
-     index, BasinhoppingView, HeatMapView, SlsqpView, 
+     BasinhoppingView, HeatMapView, SlsqpView,
      TaguchiView, OptimizationView)
+from map.views import index
 from .api import router
 
 
 urlpatterns = [
+    # Base URLs
     path('admin/', admin.site.urls),
     path('api/', include((router.urls, 'django_project'), namespace='api')),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    path('login/', auth_views.login, {'template_name': 'admin/login.html'}, name='login'),
+    path('logout/', auth_views.logout, name='logout'),
     path('oauth2/', include('rest_framework_social_oauth2.urls')),
-    path('', index, name='index'),
+
+    # Demo URLs
     path('optimization/basinhopping', BasinhoppingView.as_view(), name='basinhopping'),
     path('optimization/slsqp', SlsqpView.as_view(), name='slsqp'),
     path('optimization/taguchi', TaguchiView.as_view(), name='taguchi'),
     path('heat-map/', HeatMapView.as_view(), name='heat-map'),
-    path('optimization/', OptimizationView.as_view())
+    path('optimization/', OptimizationView.as_view()),
+
+    # Index URL
+    path('', index, name='index'),
 ]

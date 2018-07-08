@@ -1,28 +1,13 @@
 from django.shortcuts import render
 from django.views.generic import TemplateView
-from django.http import HttpResponse
 import logging
 
 from base_station.models import IdentifiedBaseStation
 from base_station.use_cases.heat_map import HeatMap
-from cluster.models import MAX_CACHE_ZOOM_SIZE
 from optimization.find_best_locations import OptimizeLocation
-
-import numpy as np
-import itertools
 
 logger = logging.getLogger(__name__)
 
-def index(request):
-    try:
-        from django.contrib.gis.geoip2 import GeoIP2
-        g = GeoIP2()
-        location = list(g.lat_lon(request.META.get('REMOTE_ADDRESS', None)))
-    except Exception as e:
-        logger.warning("[WARNING] Couldn't get location (using default location instead): {}".format(str(e)))
-        location = [-23.5572, -46.7302]
-    context = {'location': location, 'max_zoom': MAX_CACHE_ZOOM_SIZE}
-    return render(request, 'base_station/index.html', context)
 
 class OptimizationView(TemplateView):
     template_name = 'base_station/optimization.html'
