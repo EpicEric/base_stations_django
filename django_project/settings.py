@@ -10,14 +10,25 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.0/ref/settings/
 """
 
+import logging
 import os
 
+logger = logging.getLogger(__name__)
+
+# Obligatory settings
 try:
     from .config_settings import DEBUG, SECRET_KEY, ALLOWED_HOSTS, DATABASES
-except ImportError:
+except ImportError as e:
     raise ImportError(
         "Create a 'django_project/config_settings.py' file with "
-        "DEBUG, SECRET_KEY, ALLOWED_HOSTS and DATABASES configured")
+        "DEBUG, SECRET_KEY, ALLOWED_HOSTS and DATABASES configured.\n\n" + str(e))
+
+# Optional settings
+try:
+    from .config_settings import SOCIAL_AUTH_GITHUB_KEY, SOCIAL_AUTH_GITHUB_SECRET
+except ImportError as e:
+    logger.debug("Missing optional settings. If running in dev, this can be ignored. Exception: " + str(e))
+
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
