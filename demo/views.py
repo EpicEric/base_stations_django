@@ -3,24 +3,23 @@ from django.views.generic import TemplateView
 import logging
 
 from base_station.models import IdentifiedBaseStation
-from base_station.use_cases.heat_map import HeatMap
 from optimization.find_best_locations import OptimizeLocation
-
 from optimization.numerical_methods import Basinhopping, SLSQP, Taguchi
 from optimization.propagation_models import (
     AreaOptimization)
 
+from .use_cases.heat_map import HeatMap
+
 logger = logging.getLogger(__name__)
 
 
-
 class OptimizationView(TemplateView):
-    template_name = 'base_station/optimization.html'
+    template_name = 'demo/optimization.html'
 
 
 class ExampleView(TemplateView):
-    template_name = 'base_station/example.html'
-   
+    template_name = 'demo/example.html'
+
     @staticmethod
     def get_bounds_from_parameters(request):
         min_lat = float(request.GET['min_lat'])
@@ -32,18 +31,18 @@ class ExampleView(TemplateView):
 
 
 class BasinhoppingView(ExampleView):
-    
+
     def get(self, request, *args, **kwargs):
         bounds = ExampleView.get_bounds_from_parameters(request)
         NUMBER_OF_NEW_BSS = 2
         bounds = bounds * NUMBER_OF_NEW_BSS
 
-        location = [bounds[0][0] + (bounds[0][1] - bounds[0][0])/2, 
+        location = [bounds[0][0] + (bounds[0][1] - bounds[0][0])/2,
                     bounds[1][0] + (bounds[1][1] - bounds[1][0])/2]
         bss = IdentifiedBaseStation.get_base_stations_inside_bounds(
             bounds[0][0], bounds[1][0], bounds[0][1], bounds[1][1])\
             .filter(radio='GSM')
-        
+
         optimize = OptimizeLocation(bss, bounds, Basinhopping(), AreaOptimization().objective)
         solution = optimize.find_best_locations()
         solution = [list(s) for s in solution]
@@ -56,18 +55,18 @@ class BasinhoppingView(ExampleView):
 
 
 class SlsqpView(ExampleView):
-    
+
     def get(self, request, *args, **kwargs):
         bounds = ExampleView.get_bounds_from_parameters(request)
         NUMBER_OF_NEW_BSS = 2
         bounds = bounds * NUMBER_OF_NEW_BSS
 
-        location = [bounds[0][0] + (bounds[0][1] - bounds[0][0])/2, 
+        location = [bounds[0][0] + (bounds[0][1] - bounds[0][0])/2,
                     bounds[1][0] + (bounds[1][1] - bounds[1][0])/2]
         bss = IdentifiedBaseStation.get_base_stations_inside_bounds(
             bounds[0][0], bounds[1][0], bounds[0][1], bounds[1][1])\
             .filter(radio='GSM')
-        
+
         optimize = OptimizeLocation(bss, bounds, SLSQP(), AreaOptimization().objective)
         solution = optimize.find_best_locations()
         solution = [list(s) for s in solution]
@@ -86,7 +85,7 @@ class TaguchiView(ExampleView):
         NUMBER_OF_NEW_BSS = 2
         bounds = bounds * NUMBER_OF_NEW_BSS
 
-        location = [bounds[0][0] + (bounds[0][1] - bounds[0][0])/2, 
+        location = [bounds[0][0] + (bounds[0][1] - bounds[0][0])/2,
                     bounds[1][0] + (bounds[1][1] - bounds[1][0])/2]
         bss = IdentifiedBaseStation.get_base_stations_inside_bounds(
             bounds[0][0], bounds[1][0], bounds[0][1], bounds[1][1])\
@@ -105,8 +104,8 @@ class TaguchiView(ExampleView):
 
 
 class HeatMapView(TemplateView):
-    template_name = 'base_station/heat-map.html'
-    
+    template_name = 'demo/heat-map.html'
+
     def get(self, request, *args, **kwargs):
         location = [-46.7302, -23.5572]
         bounds = ExampleView.get_bounds_from_parameters(request)

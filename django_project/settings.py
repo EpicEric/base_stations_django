@@ -69,6 +69,7 @@ INSTALLED_APPS = [
     'cluster',
     'optimization',
     'map',
+    'demo',
 ]
 
 MIDDLEWARE = [
