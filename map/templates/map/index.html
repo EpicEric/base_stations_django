@@ -12,7 +12,7 @@
       // Estimated location with GeoIP2
       var baseLocation = {{ location | safe }};
 
-      window.addEventListener("map:init", function(event) {
+      window.addEventListener('map:init', function(event) {
         var map = event.detail.map;
         map.setMaxZoom(19);
         map.fetchID = 0;
@@ -31,8 +31,9 @@
                   var props = feature.properties;
                   marker.bindTooltip(`${props.cgi} (${props.radio})`);
               }});
+              layer.removeOnPan = true;
               map.markerClusterGroup.addLayer(layer);
-              return data["next"];
+              return data['next'];
             // Try next page of API
             }).then(function(new_url) {
               if (new_url) {
@@ -54,30 +55,31 @@
               return resp.json();
             }).then(function(data) {
               // Iterate over every feature and add to map
-              layer = L.geoJson(data, {
+              layer = L.featureGroup.subGroup(map.markerClusterGroup);
+              L.geoJson(data, {
                 onEachFeature: function onEachFeature(feature, marker) {
                   var props = feature.properties;
-                  if (props.count > 1) {
-                    if (props.count > 100) {
-                      marker.setIcon(customClusterBig);
-                    } else if (props.count > 20) {
-                      marker.setIcon(customClusterMedium);
-                    } else {
-                      marker.setIcon(customClusterSmall);
-                    }
-                    marker.bindTooltip(`${props.count}`);
-                  } else {
+                  if (props.count == 1) {
                     marker.bindTooltip(`${props.data}`);
+                    layer.addLayer(marker);
+                  } else {
+                    latLng = marker.getLatLng();
+                    layer.addLayer(marker);
+                    for (var i = 0; i < props.count - 1; i++) {
+                      layer.addLayer(L.marker(latLng));
+                    }
                   }
-              }});
+                },
+              });
               layer.removeOnPan = true;
               map.addLayer(layer);
-              return data["next"];
+              return data['next'];
             // Try next page of API
             }).then(function(new_url) {
               if (new_url) {
                 fetchClusters(new_url, id);
               } else {
+                map.addLayer(map.markerClusterGroup);
                 map.spin(false);
               }
             });
@@ -86,33 +88,30 @@
 
         // After zooming, clear markers
         map.on('moveend', function(e) {
-          map.spin(true);
+          // map.spin(true);
           map.fetchID = (map.fetchID % 9007199254740991) + 1;
           map.eachLayer(function(layer) {
             if (layer.removeOnPan) {
               map.removeLayer(layer);
             }
           });
+          map.markerClusterGroup = L.markerClusterGroup({"showCoverageOnHover": false});
+          map.markerClusterGroup.removeOnPan = true;
           var zoom = map.getZoom();
           var bbox = map.getBounds().toBBoxString();
-          console.log(zoom);
           if (zoom <= {{ max_zoom }}) {
-            console.log("c");
             var baseURL = "{% url 'api:cluster-list' %}?zoom_size=" + zoom + "&in_bbox=" + bbox;
             fetchClusters(baseURL, map.fetchID);
           } else {
-            console.log("bs");
-            map.markerClusterGroup = L.markerClusterGroup({"showCoverageOnHover": false});
-            map.markerClusterGroup.removeOnPan = true;
             var baseURL = "{% url 'api:base-station-list' %}?in_bbox=" + bbox;
             fetchBaseStations(baseURL, map.fetchID);
           }
         });
 
         // Attempt to get location with Geolocation API to update view
-        map.locate().on("locationfound", function(e) {
+        map.locate().on('locationfound', function(e) {
           map.setView([e.latitude, e.longitude], 17);
-        }).on("locationerror", function(e) {
+        }).on('locationerror', function(e) {
           map.setView(baseLocation, 17);
         });
       });

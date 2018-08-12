@@ -190,8 +190,8 @@ LEAFLET_CONFIG = {
                     'leaflet_plugin/css/MarkerCluster.Default.css'],
             'auto-include': True,
         },
-        'leaflet.customcluster': {
-            'js': ['leaflet_plugin/js/leaflet.customcluster.js'],
+        'Leaflet.FeatureGroup.SubGroup': {
+            'js': ['leaflet_plugin/js/leaflet.featuregroup.subgroup.js'],
             'auto-include': True,
         },
     }

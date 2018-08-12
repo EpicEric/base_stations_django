@@ -3,7 +3,7 @@ from functools import reduce
 from django.contrib.gis.db import models
 from django.contrib.gis.db.models import Collect, Count
 from django.contrib.gis.db.models.functions import GeoHash
-from django.contrib.gis.geos import Polygon, Point
+from django.contrib.gis.geos import Point
 
 from django.db.models.functions import Cast, Substr
 
