@@ -1,5 +1,5 @@
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework_gis.filters import InBBoxFilter, DistanceToPointFilter
 from rest_framework_gis.pagination import GeoJsonPagination
 
@@ -13,7 +13,7 @@ class BaseStationPagination(GeoJsonPagination):
     max_page_size = 300
 
 
-class IdentifiedBaseStationViewSet(ModelViewSet):
+class IdentifiedBaseStationViewSet(ReadOnlyModelViewSet):
     queryset = IdentifiedBaseStation.objects.all().order_by('id')
     serializer_class = IdentifiedBaseStationSerializer
     pagination_class = BaseStationPagination

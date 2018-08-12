@@ -1,32 +1,54 @@
-from django.contrib.gis.db import models
-from django.db import connection
-from django.contrib.gis.geos import GEOSGeometry, Point
 from functools import reduce
-import math
+
+from django.contrib.gis.db import models
+from django.contrib.gis.db.models import Collect, Count
+from django.contrib.gis.db.models.functions import GeoHash
+from django.contrib.gis.geos import Polygon, Point
+
+from django.db.models.functions import Cast, Substr
 
 from base_station.models import IdentifiedBaseStation
 
 BS_MODEL = IdentifiedBaseStation
-DB_TABLE = BS_MODEL._meta.db_table
-MAX_CACHE_ZOOM_SIZE = 16
-CLUSTER_EPS_MAX = 120.0
-CLUSTER_EPS_MIN = 70.0
+
+MAX_CLUSTER_ZOOM_SIZE = 16
+
+ZOOM_TO_GEOHASH_PRECISION = {
+    0: 1,
+    1: 2,
+    2: 2,
+    3: 2,
+    4: 3,
+    5: 3,
+    6: 4,
+    7: 4,
+    8: 4,
+    9: 5,
+    10: 5,
+    11: 6,
+    12: 6,
+    13: 6,
+    14: 7,
+    15: 7,
+    16: 7,
+}
+
+MAX_CLUSTER_PRECISION_SIZE = ZOOM_TO_GEOHASH_PRECISION[MAX_CLUSTER_ZOOM_SIZE]
 
 
-def tile_to_bbox(x_tile, y_tile, zoom_size):
-    n = 2.0 ** zoom_size
-    left_deg = x_tile / n * 360.0 - 180.0
-    right_deg = (x_tile + 1) / n * 360.0 - 180.0
-    top_deg = math.degrees(math.atan(math.sinh(math.pi * (1 - 2 * y_tile / n))))
-    bottom_deg = math.degrees(math.atan(math.sinh(math.pi * (1 - 2 * (y_tile + 1) / n))))
-    return tuple((left_deg, bottom_deg, right_deg, top_deg))
+class ClusterManager(models.Manager):
+    def get_queryset(self):
+        return super(ClusterManager, self).get_queryset()\
+            .annotate(geohash=GeoHash('point', precision=Cast('precision', models.PositiveIntegerField())))
 
 
 class BaseStationCluster(models.Model):
     point = models.PointField()
-    zoom_size = models.PositiveIntegerField()
+    precision = models.PositiveIntegerField()
     count = models.PositiveIntegerField()
     data = models.CharField(max_length=40, blank=True)
+
+    objects = ClusterManager()  # Annotates 'geohash' field on queryset objects
 
     def __str__(self):
         if self.count == 1:
@@ -35,95 +57,83 @@ class BaseStationCluster(models.Model):
 
     @property
     def base_stations(self):
-        return BS_MODEL.objects.filter(point__distance_lte=(self.point, BaseStationCluster.cluster_eps(self.zoom_size)))
+        return BS_MODEL.objects.annotate(geohash=GeoHash('point', precision=self.precision))\
+            .filter(geohash__eq=self.geohash)
 
     @classmethod
-    def generate_clusters(cls, zoom_size):
-        if not cls.objects.filter(zoom_size=zoom_size).exists():
-            if 0 <= zoom_size < MAX_CACHE_ZOOM_SIZE:
+    def generate_clusters(cls, precision):
+        if not cls.objects.filter(precision=precision).exists():
+            # Generate clusters from smaller clusters
+            if 1 <= precision < MAX_CLUSTER_PRECISION_SIZE:
                 print("Generating clusters...")
-                cluster_eps = cls.cluster_eps(zoom_size)
-                kmeans_query = """
-                SELECT
-                    unnest(ST_ClusterWithin(point, %s))
-                FROM
-                    {} WHERE zoom_size = %s;""".format(cls._meta.db_table)
-                with connection.cursor() as cursor:
-                    cursor.execute(kmeans_query, [cluster_eps, zoom_size + 1])
-                    cluster_rows = cursor.fetchall()
-
-                cluster_collections = [GEOSGeometry(row[0]) for row in cluster_rows]
-                total = len(cluster_collections)
+                # Get smaller clusters and annotate the new geohash for the bigger clusters
+                smaller_precision = precision + 1
+                smaller_clusters = cls.objects.filter(precision=smaller_precision)\
+                    .annotate(bigger_geohash=Substr('geohash', 1, precision))
+                # Group by bigger geohash
+                clusters_hashes = smaller_clusters.values('bigger_geohash').distinct()
+                total = clusters_hashes.count()
                 if not total:
-                    raise ValueError("No clusters found for zoom size {}".format(zoom_size + 1))
+                    raise ValueError("No clusters found for precision {}".format(precision + 1))
                 print("Saving data for {} clusters...".format(total))
-                counter = 0
+                loop_counter = 0
                 percentage = 0
-                for coll in cluster_collections:
-                    clusters = cls.objects.filter(zoom_size=zoom_size + 1, point__contained=coll)
-                    count = reduce((lambda acc, cl: acc + cl.count), clusters, 0)
-                    data = clusters.first().data if count == 1 else ''
+                for cluster_dict in clusters_hashes:
+                    geohash = cluster_dict['bigger_geohash']
+                    # Get data for smaller clusters
+                    sub_clusters = smaller_clusters.filter(bigger_geohash=geohash).values('point', 'count')
+                    count = reduce((lambda acc, cl: acc + cl['count']), sub_clusters, 0)
                     point = Point(
-                        reduce((lambda acc, cl: acc + (cl.point.x * float(cl.count))), clusters, 0.0)
+                        reduce((lambda acc, cl: acc + (cl['point'].x * float(cl['count']))), sub_clusters, 0.0)
                         / float(count),
-                        reduce((lambda acc, cl: acc + (cl.point.y * float(cl.count))), clusters, 0.0)
+                        reduce((lambda acc, cl: acc + (cl['point'].y * float(cl['count']))), sub_clusters, 0.0)
                         / float(count)
                     )
-                    cluster = BaseStationCluster(
-                        point=point,
-                        zoom_size=zoom_size,
-                        count=count,
-                        data=data)
+                    data = '' if count != 1 else sub_clusters[0].data
+                    cluster = cls(point=point, precision=precision, count=count, data=data)
                     cluster.save()
-                    counter += 1
+                    loop_counter += 1
                     prev_percentage = percentage
-                    percentage = int(100 * counter // total)
+                    percentage = 100 * loop_counter // total
                     if percentage > prev_percentage:
-                        print(" {}% done ({} clusters)".format(percentage, counter))
+                        print(" {}% done ({} clusters)".format(percentage, loop_counter))
 
-            elif zoom_size == MAX_CACHE_ZOOM_SIZE:
+            # Generate clusters from base stations
+            elif precision == MAX_CLUSTER_PRECISION_SIZE:
                 print("Generating clusters...")
-                cluster_eps = cls.cluster_eps(zoom_size)
-                kmeans_query = """
-                SELECT
-                    unnest(ST_ClusterWithin(point, %s))
-                FROM
-                    {};""".format(DB_TABLE)
-                with connection.cursor() as cursor:
-                    cursor.execute(kmeans_query, [cluster_eps])
-                    cluster_rows = cursor.fetchall()
-
-                cluster_collections = [GEOSGeometry(row[0]) for row in cluster_rows]
-                total = len(cluster_collections)
+                # Add geohash to all base stations
+                base_stations = BS_MODEL.objects.annotate(geohash=GeoHash('point', precision=precision))
+                # DEBUG BEGIN
+                # bbox = Polygon.from_bbox((-46.737, -23.564, -46.722, -23.548))
+                # base_stations = base_stations.filter(point__contained=bbox)
+                # DEBUG END
+                # Group by geohash and get cluster MultiPoint and count
+                clusters_values = base_stations.values('geohash').annotate(count=Count('point'), geom=Collect('point'))
+                total = clusters_values.count()
+                if not total:
+                    # raise ValueError("No clusters found for precision {}".format(precision + 1))
+                    raise ValueError("No base stations found for precision {}".format(precision))
                 print("Saving data for {} clusters...".format(total))
-                counter = 0
+                loop_counter = 0
                 percentage = 0
-                for coll in cluster_collections:
-                    base_stations = BS_MODEL.objects.filter(point__contained=coll)
-                    count = base_stations.count()
-                    bs = base_stations.first() if count == 1 else None
-                    data = '{} ({})'.format(bs.cgi, bs.radio) if bs else ''
-                    point = coll.centroid
-                    cluster = BaseStationCluster(
-                        point=point,
-                        zoom_size=zoom_size,
-                        count=count,
-                        data=data)
+                for cluster_dict in clusters_values:
+                    count = cluster_dict['count']
+                    point = cluster_dict['geom'].centroid
+                    data = '' if count != 1 else base_stations.get(geohash=cluster_dict['geohash']).data
+                    cluster = cls(point=point, precision=precision, count=count, data=data)
                     cluster.save()
-                    counter += 1
+                    loop_counter += 1
                     prev_percentage = percentage
-                    percentage = int(100 * counter // total)
+                    percentage = 100 * loop_counter // total
                     if percentage > prev_percentage:
-                        print(" {}% done ({} clusters)".format(percentage, counter))
+                        print(" {}% done ({} clusters)".format(percentage, loop_counter))
 
             else:
-                raise ValueError("zoom_size must be in the [0, {}] interval".format(MAX_CACHE_ZOOM_SIZE))
+                raise ValueError("precision must be in the [1, {}] interval".format(MAX_CLUSTER_PRECISION_SIZE))
 
         else:
-            raise ValueError("There are already clusters for zoom size {}".format(zoom_size))
+            raise ValueError("There are already clusters for precision {}".format(precision))
 
-    @staticmethod
-    def cluster_eps(zoom_size):
-        n = 2.0 ** zoom_size
-        return (CLUSTER_EPS_MAX * zoom_size + CLUSTER_EPS_MIN * (MAX_CACHE_ZOOM_SIZE - zoom_size)) \
-               / (MAX_CACHE_ZOOM_SIZE * n)
+    @classmethod
+    def get_clusters_for_zoom(cls, zoom_size):
+        return cls.objects.filter(precision=ZOOM_TO_GEOHASH_PRECISION[zoom_size])

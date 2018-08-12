@@ -8,6 +8,7 @@ from base_station.models import IdentifiedBaseStation
 
 BRAZIL_MCC = '724'
 
+
 class Command(BaseCommand):
     help = 'Imports identified base station data from a OpenCelliD CSV file'
 

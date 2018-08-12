@@ -60,5 +60,9 @@ class IdentifiedBaseStation(BaseStation):
     def cgi(self):
         return "{}-{}-{}-{}".format(self.mcc, self.mnc, self.lac, self.cid)
 
-    def __str__(self):
+    @property
+    def data(self):
         return "{} ({})".format(self.cgi, self.radio)
+
+    def __str__(self):
+        return self.data
