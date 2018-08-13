@@ -2,7 +2,7 @@ from functools import reduce
 
 from django.contrib.gis.db import models
 from django.contrib.gis.db.models import Collect, Count
-from django.contrib.gis.db.models.functions import GeoHash
+from django.contrib.gis.db.models.functions import Centroid, GeoHash
 from django.contrib.gis.geos import Point
 
 from django.db.models.functions import Cast, Substr
@@ -78,7 +78,7 @@ class BaseStationCluster(models.Model):
                 print("Saving data for {} clusters...".format(total))
                 loop_counter = 0
                 percentage = 0
-                for cluster_dict in clusters_hashes.iterator():
+                for cluster_dict in clusters_hashes:
                     geohash = cluster_dict['bigger_geohash']
                     # Get data from smaller clusters
                     sub_clusters = smaller_clusters.filter(bigger_geohash=geohash).values('point', 'count')
@@ -104,16 +104,16 @@ class BaseStationCluster(models.Model):
                 # Add geohash to all base stations
                 base_stations = BS_MODEL.objects.annotate(geohash=GeoHash('point', precision=precision))
                 # Group by geohash and get cluster MultiPoint and count
-                clusters_values = base_stations.values('geohash').annotate(count=Count('point'), geom=Collect('point'))
+                clusters_values = base_stations.values('geohash').annotate(count=Count('point'), geom=Centroid(Collect('point')))
                 total = clusters_values.count()
                 if not total:
                     raise ValueError("No base stations found for precision {}".format(precision))
                 print("Saving data for {} clusters...".format(total))
                 loop_counter = 0
                 percentage = 0
-                for cluster_dict in clusters_values.iterator():
+                for cluster_dict in clusters_values:
                     count = cluster_dict['count']
-                    point = cluster_dict['geom'].centroid
+                    point = cluster_dict['geom']
                     data = '' if count != 1 else base_stations.get(geohash=cluster_dict['geohash']).data
                     cluster = cls(point=point, precision=precision, count=count, data=data)
                     cluster.save()
