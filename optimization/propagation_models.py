@@ -27,8 +27,10 @@ class FreeSpacePathLossOptimization():
     def objective(self, current_bss_list, new_bss):
         frequency = 1800
         total_path_loss = 0
+        min_distance = None
         for bss in current_bss_list:
             distance = geographic_distance(bss.point.x, bss.point.y, new_bss[0], new_bss[1])
-            path_loss = self.free_space_path_loss(distance, frequency)
-            total_path_loss = dbsum(total_path_loss, path_loss)
+            if not min_distance or distance < min_distance:
+                min_distance = distance
+                path_loss = self.free_space_path_loss(min_distance, frequency)
         return total_path_loss
