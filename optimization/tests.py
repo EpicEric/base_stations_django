@@ -35,33 +35,33 @@ class TaguchiTestCase(TestCase):
 
     @timing
     def test_himmelblaus(self):
-        taguchi_result = Taguchi().minimize(himmelblaus.symmetrical_function, himmelblaus.domain)
+        taguchi_result = Taguchi().minimize(himmelblaus.function, himmelblaus.domain)
         self.assertTrue(is_minimum_correct(taguchi_result.x, himmelblaus.minimum))
 
     @timing
     def test_three_hump_camel(self):
-        taguchi_result = Taguchi().minimize(three_hump_camel.symmetrical_function, three_hump_camel.domain)
+        taguchi_result = Taguchi().minimize(three_hump_camel.function, three_hump_camel.domain)
         self.assertTrue(is_minimum_correct(taguchi_result.x, three_hump_camel.minimum))
 
     @timing
     def test_easom(self):
-        taguchi_result = Taguchi().minimize(easom.symmetrical_function, easom.domain)
+        taguchi_result = Taguchi().minimize(easom.function, easom.domain)
         self.assertTrue(is_minimum_correct(taguchi_result.x, easom.minimum))
 
     @timing
     def test_mccormick(self):
-        taguchi_result = Taguchi().minimize(mccormick.symmetrical_function, mccormick.domain)
+        taguchi_result = Taguchi().minimize(mccormick.function, mccormick.domain)
         self.assertTrue(is_minimum_correct(taguchi_result.x, mccormick.minimum))
 
     @skip("Do not work")
     @timing
     def test_schaffer4(self):
-        taguchi_result = Taguchi().minimize(schaffer4.symmetrical_function, schaffer4.domain)
+        taguchi_result = Taguchi().minimize(schaffer4.function, schaffer4.domain)
         self.assertTrue(is_minimum_correct(taguchi_result.x, schaffer4.minimum))
 
     @timing
     def test_matyas(self):
-        taguchi_result = Taguchi().minimize(matyas.symmetrical_function, matyas.domain)
+        taguchi_result = Taguchi().minimize(matyas.function, matyas.domain)
         self.assertTrue(is_minimum_correct(taguchi_result.x, matyas.minimum))
 
 
