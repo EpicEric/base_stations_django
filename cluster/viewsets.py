@@ -3,8 +3,8 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework_gis.filters import InBBoxFilter, DistanceToPointFilter
 from rest_framework_gis.pagination import GeoJsonPagination
 
-from .models import BaseStationCluster, ZOOM_TO_GEOHASH_PRECISION
-from .serializers import BaseStationClusterSerializer
+from .models import BaseStationCluster, BS_MODEL, ZOOM_TO_GEOHASH_PRECISION
+from .serializers import BaseStationClusterSerializer, BaseStationUnitSerializer
 
 
 class BaseStationClusterPagination(GeoJsonPagination):
@@ -25,13 +25,27 @@ class BaseStationClusterViewSet(ReadOnlyModelViewSet):
     def list(self, request, *args, **kwargs):
         query_params = request._request.GET.copy()
         zoom_size = query_params.pop('zoom_size', None)
-        if zoom_size:
+        if not zoom_size:
+            raise ParseError('Missing parameter \'zoom_size\'')
+        if type(zoom_size) is list:
+            zoom_size = zoom_size[0]
+        try:
+            zoom_size = int(zoom_size)
+        except ValueError:
+            raise ParseError('\'zoom_size\' must be an integer')
+
+        # BaseStationCluster
+        if zoom_size <= MAX_CLUSTER_ZOOM_SIZE:
             try:
-                if type(zoom_size) is list:
-                    zoom_size = zoom_size[0]
                 precision = ZOOM_TO_GEOHASH_PRECISION[int(zoom_size)]
                 query_params['precision'] = precision
                 request._request.GET = query_params
             except KeyError:
                 pass
+            return super(BaseStationClusterViewSet, self).list(request, *args, **kwargs)
+
+        # BS_MODEL
+        self.queryset = BS_MODEL.objects.all().order_by('id')
+        self.serializer_class = BaseStationUnitSerializer
+        request._request.GET = query_params
         return super(BaseStationClusterViewSet, self).list(request, *args, **kwargs)

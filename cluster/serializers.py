@@ -1,17 +1,39 @@
 from rest_framework.fields import SerializerMethodField
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
-from .models import BaseStationCluster
+from .models import BaseStationCluster, BS_MODEL
 
 
 class BaseStationClusterSerializer(GeoFeatureModelSerializer):
-    geohash = SerializerMethodField()
+    is_cluster = SerializerMethodField()
 
     class Meta:
         model = BaseStationCluster
         geo_field = 'point'
-        fields = ('id', 'precision', 'geohash', 'count', 'data')
+        fields = ('id', 'count', 'data', 'is_cluster')
 
     @staticmethod
-    def get_geohash(obj):
-        return obj.geohash
+    def is_cluster(obj):
+        return obj.count > 1
+
+class BaseStationUnitSerializer(GeoFeatureModelSerializer):
+    count = SerializerMethodField()
+    data = SerializerMethodField()
+    is_cluster = SerializerMethodField()
+
+    class Meta:
+        model = BS_MODEL
+        geo_field = 'point'
+        fields = ('id', 'count', 'data', 'is_cluster')
+
+    @staticmethod
+    def count(obj):
+        return 1
+
+    @staticmethod
+    def data(obj):
+        return obj.data
+
+    @staticmethod
+    def is_cluster(obj):
+        return False
