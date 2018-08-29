@@ -1,11 +1,11 @@
 from functools import reduce
 
 from django.contrib.gis.db import models
-from django.contrib.gis.db.models import Collect, Count
+from django.contrib.gis.db.models import Collect, Count, F
 from django.contrib.gis.db.models.functions import Centroid, GeoHash
 from django.contrib.gis.geos import Point
 
-from django.db.models.functions import Cast, Substr
+from django.db.models.functions import Substr
 
 from base_station.models import IdentifiedBaseStation
 
@@ -39,7 +39,7 @@ MAX_CLUSTER_PRECISION_SIZE = ZOOM_TO_GEOHASH_PRECISION[MAX_CLUSTER_ZOOM_SIZE]
 class ClusterManager(models.Manager):
     def get_queryset(self):
         return super(ClusterManager, self).get_queryset()\
-            .annotate(geohash=GeoHash('point', precision=Cast('precision', models.PositiveIntegerField())))
+            .annotate(geohash=GeoHash('point', precision=F('precision')))
 
 
 class BaseStationCluster(models.Model):
