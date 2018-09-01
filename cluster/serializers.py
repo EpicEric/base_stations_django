@@ -13,8 +13,9 @@ class BaseStationClusterSerializer(GeoFeatureModelSerializer):
         fields = ('id', 'count', 'data', 'is_cluster')
 
     @staticmethod
-    def is_cluster(obj):
+    def get_is_cluster(obj):
         return obj.count > 1
+
 
 class BaseStationUnitSerializer(GeoFeatureModelSerializer):
     count = SerializerMethodField()
@@ -27,13 +28,13 @@ class BaseStationUnitSerializer(GeoFeatureModelSerializer):
         fields = ('id', 'count', 'data', 'is_cluster')
 
     @staticmethod
-    def count(obj):
+    def get_count(_):
         return 1
 
     @staticmethod
-    def data(obj):
+    def get_data(obj):
         return obj.data
 
     @staticmethod
-    def is_cluster(obj):
+    def get_is_cluster(_):
         return False

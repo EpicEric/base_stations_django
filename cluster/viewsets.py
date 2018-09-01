@@ -1,9 +1,11 @@
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.exceptions import ParseError
+from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework_gis.filters import InBBoxFilter, DistanceToPointFilter
 from rest_framework_gis.pagination import GeoJsonPagination
 
-from .models import BaseStationCluster, BS_MODEL, ZOOM_TO_GEOHASH_PRECISION
+from .models import BaseStationCluster, BS_MODEL, ZOOM_TO_GEOHASH_PRECISION, MAX_CLUSTER_ZOOM_SIZE
 from .serializers import BaseStationClusterSerializer, BaseStationUnitSerializer
 
 
@@ -45,7 +47,15 @@ class BaseStationClusterViewSet(ReadOnlyModelViewSet):
             return super(BaseStationClusterViewSet, self).list(request, *args, **kwargs)
 
         # BS_MODEL
-        self.queryset = BS_MODEL.objects.all().order_by('id')
-        self.serializer_class = BaseStationUnitSerializer
-        request._request.GET = query_params
-        return super(BaseStationClusterViewSet, self).list(request, *args, **kwargs)
+        return Response(BaseStationUnitViewSet.as_view({'get': 'list'})(request._request).data)
+        # return BaseStationUnitViewSet(request=request, format=).list(request, *args, **kwargs)
+
+
+class BaseStationUnitViewSet(ReadOnlyModelViewSet):
+    queryset = BS_MODEL.objects.all().order_by('id')
+    serializer_class = BaseStationUnitSerializer
+    pagination_class = BaseStationClusterPagination
+    bbox_filter_field = 'point'
+    filter_backends = (InBBoxFilter, DistanceToPointFilter, DjangoFilterBackend)
+    filter_fields = ()
+    bbox_filter_include_overlapping = True
