@@ -78,8 +78,10 @@
 
         // Attempt to get location with Geolocation API to update view
         map.locate().on('locationfound', function(e) {
+          map.setMinZoom(15);
           map.setView([e.latitude, e.longitude], 17);
         }).on('locationerror', function(e) {
+          map.setMinZoom(15);
           map.setView(baseLocation, 17);
         });
       });
