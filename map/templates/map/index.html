@@ -33,7 +33,6 @@
               count = cluster.count;
           }
           if (count == 1) { // actual marker
-              cluster.bindTooltip(`${cluster.data}`);
               return new L.Icon.Default();
           }
           // cluster icon
@@ -66,13 +65,13 @@
                 onEachFeature: function onEachFeature(feature, marker) {
                   var props = feature.properties;
                   marker.count = props.count;
-                  // If it is not a cluster, add data to marker
+                  // If it is not a cluster, add text data to marker
                   if (!props.is_cluster) {
                     marker.data = props.data;
+                    marker.bindTooltip(`${props.data}`);
                   }
-                  layer.addLayer(marker);
                 },
-              });
+              }).addTo(layer);
               layer.removeOnPan = true;
               map.addLayer(layer);
               return data['next'];
