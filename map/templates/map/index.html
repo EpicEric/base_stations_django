@@ -17,6 +17,41 @@
         map.setMaxZoom(19);
         map.fetchID = 0;
 
+        // also used as MarkerClusterGroup option iconCreateFunction
+        var iconCreateFunction = function (cluster) {
+          var count = 0;
+          if (cluster.getAllChildMarkers) { // markercluster plugin call
+              var children = cluster.getAllChildMarkers();
+              for (var i = 0; i < children.length; i++) {
+                  if (children[i].count)
+                      count += children[i].count;
+                  else
+                      count++;
+              }
+          }
+          else if (cluster.count) { // custom call
+              count = cluster.count;
+          }
+          if (count == 1) { // actual marker
+              cluster.bindTooltip(`${cluster.data}`);
+              return new L.Icon.Default();
+          }
+          // cluster icon
+          var c = 'marker-cluster-';
+          if (count < 25) {
+              c += 'small';
+          } else if (count < 250) {
+              c += 'medium';
+          } else {
+              c += 'large';
+          }
+          return new L.DivIcon({
+              html: '<div><span>' + count + '</span></div>',
+              className: 'marker-cluster ' + c,
+              iconSize: new L.Point(40, 40)
+          });
+        }
+
         // Function to fetch clusters from API
         var fetchClusters = function(url, id) {
           // After changing pan/zoom, stop fetching from previous screen
@@ -30,18 +65,12 @@
               L.geoJson(data, {
                 onEachFeature: function onEachFeature(feature, marker) {
                   var props = feature.properties;
-                  // If it is a cluster, add multiple markers
-                  if (props.is_cluster) {
-                    latLng = marker.getLatLng();
-                    layer.addLayer(marker);
-                    for (var i = 0; i < props.count - 1; i++) {
-                      layer.addLayer(L.marker(latLng));
-                    }
-                  // If it is not a cluster, add a single marker
-                  } else {
-                    marker.bindTooltip(`${props.data}`);
-                    layer.addLayer(marker);
+                  marker.count = props.count;
+                  // If it is not a cluster, add data to marker
+                  if (!props.is_cluster) {
+                    marker.data = props.data;
                   }
+                  layer.addLayer(marker);
                 },
               });
               layer.removeOnPan = true;
@@ -61,6 +90,7 @@
 
         // After zooming, clear markers
         map.on('moveend', function(e) {
+          map.spin(true);
           map.fetchID = (map.fetchID % 9007199254740991) + 1;
           map.eachLayer(function(layer) {
             if (layer.removeOnPan) {
@@ -68,7 +98,10 @@
             }
           });
           // map.spin(true);
-          map.markerClusterGroup = L.markerClusterGroup({"showCoverageOnHover": false});
+          map.markerClusterGroup = L.markerClusterGroup({
+            showCoverageOnHover: false,
+            iconCreateFunction: iconCreateFunction,
+          });
           map.markerClusterGroup.removeOnPan = true;
           var zoom = map.getZoom();
           var bbox = map.getBounds().toBBoxString();
@@ -78,10 +111,8 @@
 
         // Attempt to get location with Geolocation API to update view
         map.locate().on('locationfound', function(e) {
-          map.setMinZoom(15);
           map.setView([e.latitude, e.longitude], 17);
         }).on('locationerror', function(e) {
-          map.setMinZoom(15);
           map.setView(baseLocation, 17);
         });
       });
