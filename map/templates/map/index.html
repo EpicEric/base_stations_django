@@ -10,7 +10,10 @@
     </style>
     <script type="text/javascript">
       // Estimated location with GeoIP2
-      var baseLocation = {{ location | safe }};
+      var baseLocation = null;
+
+      // Base cluster URL template
+      var clusterURL = null;
 
       window.addEventListener('map:init', function(event) {
         var map = event.detail.map;
@@ -104,15 +107,21 @@
           map.markerClusterGroup.removeOnPan = true;
           var zoom = map.getZoom();
           var bbox = map.getBounds().toBBoxString();
-          var baseURL = "{% url 'api:cluster-list' %}?zoom_size=" + zoom + "&in_bbox=" + bbox;
+          var baseURL = clusterURL.replace(/\{\{zoom\}\}/, zoom).replace(/\{\{bbox\}\}/, bbox);
           fetchClusters(baseURL, map.fetchID);
         });
 
-        // Attempt to get location with Geolocation API to update view
-        map.locate().on('locationfound', function(e) {
-          map.setView([e.latitude, e.longitude], 17);
-        }).on('locationerror', function(e) {
-          map.setView(baseLocation, 17);
+        fetch("/api/map_info").then(function(resp) {
+          return resp.json();
+        }).then(function(data) {
+          baseLocation = data.location;
+          clusterURL = data.cluster_url;
+          // Attempt to get location with Geolocation API to update view
+          map.locate().on('locationfound', function(e) {
+            map.setView([e.latitude, e.longitude], 17);
+          }).on('locationerror', function(e) {
+            map.setView(baseLocation, 17);
+          });
         });
       });
     </script>
