@@ -20,6 +20,24 @@
         map.setMaxZoom(19);
         map.fetchID = 0;
 
+        var getTextFromCount = function (count) {
+          var suffix = ['', 'k', 'M'];
+          var suffixIndex = 0;
+          if (count > 10000) {
+            while (count > 1000) {
+              count /= 1000;
+              suffixIndex++;
+            }
+          }
+          if (count > 100) {
+            return Math.round(count) + suffix[suffixIndex];
+          }
+          if (count > 10) {
+            return (Math.round(count * 10) / 10) + suffix[suffixIndex];
+          }
+          return (Math.round(count * 100) / 100) + suffix[suffixIndex];
+        };
+
         // also used as MarkerClusterGroup option iconCreateFunction
         var iconCreateFunction = function (cluster) {
           var count = 0;
@@ -48,7 +66,7 @@
               c += 'large';
           }
           return new L.DivIcon({
-              html: '<div><span>' + count + '</span></div>',
+              html: '<div><span>' + getTextFromCount(count) + '</span></div>',
               className: 'marker-cluster ' + c,
               iconSize: new L.Point(40, 40)
           });
@@ -92,7 +110,7 @@
 
         // After zooming, clear markers
         map.on('moveend', function(e) {
-          map.spin(true);
+          // map.spin(true);
           map.fetchID = (map.fetchID % 9007199254740991) + 1;
           map.eachLayer(function(layer) {
             if (layer.removeOnPan) {
