@@ -20,6 +20,7 @@
         map.setMaxZoom(19);
         map.fetchID = 0;
 
+        // Generate text for each cluster
         var getTextFromCount = function (count) {
           var suffix = ['', 'k', 'M'];
           var suffixIndex = 0;
@@ -38,16 +39,17 @@
           return (Math.round(count * 100) / 100) + suffix[suffixIndex];
         };
 
-        // also used as MarkerClusterGroup option iconCreateFunction
+        // Also used as MarkerClusterGroup option iconCreateFunction
         var iconCreateFunction = function (cluster) {
           var count = 0;
           if (cluster.getAllChildMarkers) { // markercluster plugin call
               var children = cluster.getAllChildMarkers();
               for (var i = 0; i < children.length; i++) {
-                if (children[i].count)
+                if (children[i].count) {
                   count += children[i].count;
-                else
+                } else {
                   count++;
+                }
               }
           } else if (cluster.count) { // custom call
               count = cluster.count;
@@ -71,6 +73,15 @@
           });
         }
 
+        // Clear stale marker cluster layers
+        var clearMarkerLayers = function() {
+          map.eachLayer(function(layer) {
+            if (layer.removeOnPan && layer.fetchID != map.fetchID) {
+              map.removeLayer(layer);
+            }
+          });
+        };
+
         // Function to fetch clusters from API
         var fetchClusters = function(url, id) {
           // After changing pan/zoom, stop fetching from previous screen
@@ -80,7 +91,7 @@
               return resp.json();
             }).then(function(data) {
               // Try next page of API
-              new Promise(function (resolve, reject) {
+              var promise = new Promise(function (resolve, reject) {
                 var new_url = data['next'];
                 if (new_url) {
                   fetchClusters(new_url, id);
@@ -108,8 +119,12 @@
                 },
               }).addTo(layer);
               layer.removeOnPan = true;
-              map.addLayer(layer);
-              return data['next'];
+              layer.fetchID = id;
+              clearMarkerLayers();
+              if (id == map.fetchID) {
+                map.addLayer(layer);
+              }
+              return promise;
             });
           }
         }
@@ -118,16 +133,13 @@
         map.on('moveend', function(e) {
           // map.spin(true);
           map.fetchID = (map.fetchID % 9007199254740991) + 1;
-          map.eachLayer(function(layer) {
-            if (layer.removeOnPan) {
-              map.removeLayer(layer);
-            }
-          });
+          clearMarkerLayers();
           map.markerClusterGroup = L.markerClusterGroup({
             showCoverageOnHover: false,
             iconCreateFunction: iconCreateFunction,
           });
           map.markerClusterGroup.removeOnPan = true;
+          map.markerClusterGroup.fetchID = map.fetchID;
           var zoom = map.getZoom();
           var bbox = map.getBounds().toBBoxString();
           var baseURL = clusterURL.replace(/\{\{zoom\}\}/, zoom).replace(/\{\{bbox\}\}/, bbox);
