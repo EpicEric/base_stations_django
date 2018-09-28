@@ -25,9 +25,9 @@ except ImportError as e:
 
 # Optional settings
 try:
-    from .config_settings import SOCIAL_AUTH_GITHUB_KEY, SOCIAL_AUTH_GITHUB_SECRET
+    from .config_settings import SOCIAL_AUTH_GITHUB_KEY, SOCIAL_AUTH_GITHUB_SECRET, SOCIAL_AUTH_FACEBOOK_KEY, SOCIAL_AUTH_FACEBOOK_SECRET
 except ImportError as e:
-    logger.debug("Missing optional settings. If running in dev, this can be ignored. Exception: " + str(e))
+    logger.warning("Missing optional setting(s). If running in dev, this can be ignored. Exception: " + str(e))
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -171,9 +171,19 @@ AUTHENTICATION_BACKENDS = (
     # django-rest-framework-social-oauth2
     'rest_framework_social_oauth2.backends.DjangoOAuth2',
 
+    # Facebook OAuth2
+    'social_core.backends.facebook.FacebookAppOAuth2',
+    'social_core.backends.facebook.FacebookOAuth2',
+
     # GitHub OAuth2
     'social_core.backends.github.GithubOAuth2',
 )
+
+SOCIAL_AUTH_FACEBOOK_SCOPE = ['email']
+
+SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS = {
+    'fields': 'id, name, email'
+}
 
 LOGIN_URL = 'login'
 
