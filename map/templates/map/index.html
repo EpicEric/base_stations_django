@@ -58,9 +58,9 @@
           }
           // cluster icon
           var c = 'marker-cluster-';
-          if (count < 25) {
+          if (count < 100) {
               c += 'small';
-          } else if (count < 250) {
+          } else if (count < 1000) {
               c += 'medium';
           } else {
               c += 'large';
@@ -80,6 +80,17 @@
               // Convert to GeoJSON
               return resp.json();
             }).then(function(data) {
+              // Try next page of API
+              new Promise(function (resolve, reject) {
+                var new_url = data['next'];
+                if (new_url) {
+                  fetchClusters(new_url, id);
+                } else {
+                  map.addLayer(map.markerClusterGroup);
+                  map.spin(false);
+                }
+                resolve();
+              });
               // Iterate over every feature and add to map
               layer = L.featureGroup.subGroup(map.markerClusterGroup);
               L.geoJson(data, {
@@ -96,14 +107,6 @@
               layer.removeOnPan = true;
               map.addLayer(layer);
               return data['next'];
-            // Try next page of API
-            }).then(function(new_url) {
-              if (new_url) {
-                fetchClusters(new_url, id);
-              } else {
-                map.addLayer(map.markerClusterGroup);
-                map.spin(false);
-              }
             });
           }
         }

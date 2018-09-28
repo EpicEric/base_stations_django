@@ -10,9 +10,9 @@ from .serializers import BaseStationClusterSerializer, BaseStationUnitSerializer
 
 
 class BaseStationClusterPagination(GeoJsonPagination):
-    page_size = 300
+    page_size = 600
     page_size_query_param = 'page_size'
-    max_page_size = 300
+    max_page_size = 800
 
 
 class BaseStationClusterViewSet(ReadOnlyModelViewSet):
