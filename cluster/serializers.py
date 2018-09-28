@@ -5,27 +5,20 @@ from .models import BaseStationCluster, BS_MODEL
 
 
 class BaseStationClusterSerializer(GeoFeatureModelSerializer):
-    is_cluster = SerializerMethodField()
-
     class Meta:
         model = BaseStationCluster
         geo_field = 'point'
-        fields = ('id', 'count', 'data', 'is_cluster')
-
-    @staticmethod
-    def get_is_cluster(obj):
-        return obj.count > 1
+        fields = ('id', 'count', 'data')
 
 
 class BaseStationUnitSerializer(GeoFeatureModelSerializer):
     count = SerializerMethodField()
     data = SerializerMethodField()
-    is_cluster = SerializerMethodField()
 
     class Meta:
         model = BS_MODEL
         geo_field = 'point'
-        fields = ('id', 'count', 'data', 'is_cluster')
+        fields = ('id', 'count', 'data')
 
     @staticmethod
     def get_count(_):
@@ -34,7 +27,3 @@ class BaseStationUnitSerializer(GeoFeatureModelSerializer):
     @staticmethod
     def get_data(obj):
         return obj.data
-
-    @staticmethod
-    def get_is_cluster(_):
-        return False

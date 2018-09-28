@@ -44,13 +44,12 @@
           if (cluster.getAllChildMarkers) { // markercluster plugin call
               var children = cluster.getAllChildMarkers();
               for (var i = 0; i < children.length; i++) {
-                  if (children[i].count)
-                      count += children[i].count;
-                  else
-                      count++;
+                if (children[i].count)
+                  count += children[i].count;
+                else
+                  count++;
               }
-          }
-          else if (cluster.count) { // custom call
+          } else if (cluster.count) { // custom call
               count = cluster.count;
           }
           if (count == 1) { // actual marker
@@ -98,9 +97,13 @@
                   var props = feature.properties;
                   marker.count = props.count;
                   // If it is not a cluster, add text data to marker
-                  if (!props.is_cluster) {
-                    marker.data = props.data;
+                  if (props.count == 1) {
                     marker.bindTooltip(`${props.data}`);
+                  } else {
+                    marker.setIcon(iconCreateFunction(marker));
+                    marker.on('click', function(e) {
+                      map.setView(e.latlng, map.getZoom() + 1);
+                    });
                   }
                 },
               }).addTo(layer);
@@ -120,7 +123,6 @@
               map.removeLayer(layer);
             }
           });
-          // map.spin(true);
           map.markerClusterGroup = L.markerClusterGroup({
             showCoverageOnHover: false,
             iconCreateFunction: iconCreateFunction,
