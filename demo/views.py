@@ -34,7 +34,7 @@ class BasinhoppingView(ExampleView):
 
     def get(self, request, *args, **kwargs):
         bounds = ExampleView.get_bounds_from_parameters(request)
-        NUMBER_OF_NEW_BSS = 1
+        NUMBER_OF_NEW_BSS = 5
         bounds = bounds * NUMBER_OF_NEW_BSS
 
         location = [bounds[0][0] + (bounds[0][1] - bounds[0][0])/2,
@@ -43,7 +43,7 @@ class BasinhoppingView(ExampleView):
             bounds[0][0], bounds[1][0], bounds[0][1], bounds[1][1])\
             .filter(radio='GSM')
         
-        optimize = OptimizeLocation(bss, bounds, Basinhopping(), FreeSpacePathLossOptimization().objective)
+        optimize = OptimizeLocation(bss, bounds, Basinhopping(), AreaOptimization().objective)
         solution = optimize.find_best_locations()
         solution = [list(s) for s in solution]
         bs_coordinates = list(map(lambda bs: [bs.point.x, bs.point.y], bss))
