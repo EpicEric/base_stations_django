@@ -18,6 +18,6 @@ class MapInfoSerializer(BaseSerializer):
             logger.warning("Couldn't get location (using default location instead): {}".format(str(e)))
             location = DEFAULT_LOCATION
         return OrderedDict({
-            'cluster_url': reverse('api:cluster-list') + '?zoom_size={{zoom}}&in_bbox={{bbox}}',
+            'cluster_url': reverse('api:cluster-list') + '?zoom_size={{zoom}}&in_bbox={{bbox}}&operator={{operator}}',
             'location': location
         })

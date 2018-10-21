@@ -7,7 +7,7 @@ from django.contrib.gis.geos import Point
 
 from django.db.models.functions import Substr
 
-from base_station.models import IdentifiedBaseStation
+from base_station.models import IdentifiedBaseStation, Operator
 
 BS_MODEL = IdentifiedBaseStation
 
@@ -47,6 +47,7 @@ class BaseStationCluster(models.Model):
     precision = models.PositiveIntegerField()
     count = models.PositiveIntegerField()
     data = models.CharField(max_length=40, blank=True)
+    operator = models.ForeignKey(Operator, null=True, on_delete=models.CASCADE)
 
     objects = ClusterManager()  # Annotates 'geohash' field on queryset objects
 
@@ -61,14 +62,14 @@ class BaseStationCluster(models.Model):
             .filter(geohash__eq=self.geohash)
 
     @classmethod
-    def generate_clusters(cls, precision):
-        if not cls.objects.filter(precision=precision).exists():
+    def generate_clusters(cls, precision, operator=None):
+        if not cls.objects.filter(precision=precision, operator=operator).exists():
             # Generate clusters from smaller clusters
             if 1 <= precision < MAX_CLUSTER_PRECISION_SIZE:
                 print("Generating clusters...")
                 # Get smaller clusters and annotate the new geohash for the bigger clusters
                 smaller_precision = precision + 1
-                smaller_clusters = cls.objects.filter(precision=smaller_precision)\
+                smaller_clusters = cls.objects.filter(precision=smaller_precision, operator=operator)\
                     .annotate(bigger_geohash=Substr('geohash', 1, precision))
                 # Group by bigger geohash
                 clusters_hashes = smaller_clusters.values('bigger_geohash').distinct()
@@ -90,7 +91,7 @@ class BaseStationCluster(models.Model):
                         / float(count)
                     )
                     data = '' if count != 1 else sub_clusters[0]['data']
-                    cluster = cls(point=point, precision=precision, count=count, data=data)
+                    cluster = cls(point=point, precision=precision, count=count, data=data, operator=operator)
                     cluster.save()
                     loop_counter += 1
                     prev_percentage = percentage
@@ -103,6 +104,10 @@ class BaseStationCluster(models.Model):
                 print("Generating clusters...")
                 # Add geohash to all base stations
                 base_stations = BS_MODEL.objects.annotate(geohash=GeoHash('point', precision=precision))
+                # Filter by operator
+                if operator:
+                    mnc_list = [m.value for m in operator.mnc_set.all()]
+                    base_stations = base_stations.filter(mnc__in=mnc_list)
                 # Group by geohash and get cluster MultiPoint and count
                 clusters_values = base_stations.values('geohash').annotate(count=Count('point'), geom=Collect('point'))
                 total = clusters_values.count()
@@ -115,7 +120,7 @@ class BaseStationCluster(models.Model):
                     count = cluster_dict['count']
                     point = cluster_dict['geom'].centroid
                     data = '' if count != 1 else base_stations.get(geohash=cluster_dict['geohash']).data
-                    cluster = cls(point=point, precision=precision, count=count, data=data)
+                    cluster = cls(point=point, precision=precision, count=count, data=data, operator=operator)
                     cluster.save()
                     loop_counter += 1
                     prev_percentage = percentage
@@ -127,7 +132,8 @@ class BaseStationCluster(models.Model):
                 raise ValueError("precision must be in the [1, {}] interval".format(MAX_CLUSTER_PRECISION_SIZE))
 
         else:
-            raise ValueError("There are already clusters for precision {}".format(precision))
+            operator_string = ' and operator {}'.format(operator) if operator else ''
+            raise ValueError("There are already clusters for precision {}{}".format(precision, operator_string))
 
     @classmethod
     def get_clusters_for_zoom(cls, zoom_size):

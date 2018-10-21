@@ -142,7 +142,8 @@
           map.markerClusterGroup.fetchID = map.fetchID;
           var zoom = map.getZoom();
           var bbox = map.getBounds().toBBoxString();
-          var baseURL = clusterURL.replace(/\{\{zoom\}\}/, zoom).replace(/\{\{bbox\}\}/, bbox);
+          var operator = "null"; // FIXME
+          var baseURL = clusterURL.replace(/\{\{zoom\}\}/, zoom).replace(/\{\{bbox\}\}/, bbox).replace(/\{\{operator\}\}/, operator);
           fetchClusters(baseURL, map.fetchID);
         });
 

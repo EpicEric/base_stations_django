@@ -5,12 +5,20 @@ from geography.models import FederativeUnit
 
 class Operator(models.Model):
     name = models.CharField(max_length=40)
+    friendly_name = models.CharField(max_length=40, blank=True)
     number = models.CharField(max_length=20, blank=True)
     cnpj = models.CharField(max_length=20, blank=True)
     fistel = models.CharField(max_length=20, blank=True)
 
     def __str__(self):
-        return self.name
+        return self.friendly_name if self.friendly_name else self.name
+
+class MNC(models.Model):
+    value = models.IntegerField()
+    operator = models.ForeignKey(Operator, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return '{} ({})'.format(self.value, self.operator)
 
 
 class BaseStation(models.Model):

@@ -5,6 +5,7 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework_gis.filters import InBBoxFilter, DistanceToPointFilter
 from rest_framework_gis.pagination import GeoJsonPagination
 
+from base_station.models import Operator
 from .models import BaseStationCluster, BS_MODEL, ZOOM_TO_GEOHASH_PRECISION, MAX_CLUSTER_ZOOM_SIZE
 from .serializers import BaseStationClusterSerializer, BaseStationUnitSerializer
 
@@ -21,7 +22,7 @@ class BaseStationClusterViewSet(ReadOnlyModelViewSet):
     pagination_class = BaseStationClusterPagination
     bbox_filter_field = 'point'
     filter_backends = (InBBoxFilter, DistanceToPointFilter, DjangoFilterBackend)
-    filter_fields = ('precision',)
+    filter_fields = ('precision', 'operator')
     bbox_filter_include_overlapping = True
 
     def list(self, request, *args, **kwargs):
@@ -41,6 +42,10 @@ class BaseStationClusterViewSet(ReadOnlyModelViewSet):
             try:
                 precision = ZOOM_TO_GEOHASH_PRECISION[int(zoom_size)]
                 query_params['precision'] = precision
+                operator_id = query_params.pop('operator', None)
+                if operator_id and operator_id[0] and operator_id[0] != 'null':
+                    operator = Operator.objects.get(id=operator_id[0])
+                    self.queryset = self.queryset.filter(operator=operator)
                 request._request.GET = query_params
             except KeyError:
                 pass
@@ -59,3 +64,13 @@ class BaseStationUnitViewSet(ReadOnlyModelViewSet):
     filter_backends = (InBBoxFilter, DistanceToPointFilter, DjangoFilterBackend)
     filter_fields = ()
     bbox_filter_include_overlapping = True
+
+    def list(self, request, *args, **kwargs):
+        query_params = request._request.GET.copy()
+        operator_id = query_params.pop('operator', None)
+        request._request.GET = query_params
+        if operator_id and operator_id[0] and operator_id[0] != 'null':
+            operator = Operator.objects.get(id=operator_id[0])
+            mnc_list = [m.value for m in operator.mnc_set.all()]
+            self.queryset = self.queryset.filter(mnc__in=mnc_list)
+        return super(BaseStationUnitViewSet, self).list(request, *args, **kwargs)
