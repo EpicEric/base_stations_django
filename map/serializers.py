@@ -15,9 +15,10 @@ class MapInfoSerializer(BaseSerializer):
             g = GeoIP2()
             location = list(g.lat_lon(request.META.get('REMOTE_ADDRESS', None)))
         except Exception as e:
-            logger.warning("Couldn't get location (using default location instead): {}".format(str(e)))
+            logger.warning('Couldn\'t get location (using default location instead): {}'.format(str(e)))
             location = DEFAULT_LOCATION
         return OrderedDict({
             'cluster_url': reverse('api:cluster-list') + '?zoom_size={{zoom}}&in_bbox={{bbox}}&operator={{operator}}',
-            'location': location
+            'operator_url': reverse('api:operator-list'),
+            'location': location,
         })
