@@ -35,6 +35,8 @@ ZOOM_TO_GEOHASH_PRECISION = {
 
 MAX_CLUSTER_PRECISION_SIZE = ZOOM_TO_GEOHASH_PRECISION[MAX_CLUSTER_ZOOM_SIZE]
 
+DATABASE_COMMIT_SIZE = 1000
+
 
 class ClusterManager(models.Manager):
     def get_queryset(self):
@@ -79,6 +81,7 @@ class BaseStationCluster(models.Model):
                 print("Saving data for {} clusters...".format(total))
                 loop_counter = 0
                 percentage = 0
+                cluster_array = []
                 for cluster_dict in clusters_hashes:
                     geohash = cluster_dict['bigger_geohash']
                     # Get data from smaller clusters
@@ -92,12 +95,18 @@ class BaseStationCluster(models.Model):
                     )
                     data = '' if count != 1 else sub_clusters[0]['data']
                     cluster = cls(point=point, precision=precision, count=count, data=data, operator=operator)
-                    cluster.save()
+                    cluster_array.append(cluster)
+                    if len(cluster_array) >= DATABASE_COMMIT_SIZE:
+                        cls.objects.bulk_create(cluster_array)
+                        cluster_array = []
                     loop_counter += 1
                     prev_percentage = percentage
                     percentage = 100 * loop_counter // total
                     if percentage > prev_percentage:
                         print(" {}% done ({} clusters)".format(percentage, loop_counter))
+                if len(cluster_array) > 0:
+                    cls.objects.bulk_create(cluster_array)
+                return
 
             # Generate clusters from base stations
             elif precision == MAX_CLUSTER_PRECISION_SIZE:
@@ -116,17 +125,24 @@ class BaseStationCluster(models.Model):
                 print("Saving data for {} clusters...".format(total))
                 loop_counter = 0
                 percentage = 0
+                cluster_array = []
                 for cluster_dict in clusters_values:
                     count = cluster_dict['count']
                     point = cluster_dict['geom'].centroid
                     data = '' if count != 1 else base_stations.get(geohash=cluster_dict['geohash']).data
                     cluster = cls(point=point, precision=precision, count=count, data=data, operator=operator)
-                    cluster.save()
+                    cluster_array.append(cluster)
+                    if len(cluster_array) >= DATABASE_COMMIT_SIZE:
+                        cls.objects.bulk_create(cluster_array)
+                        cluster_array = []
                     loop_counter += 1
                     prev_percentage = percentage
                     percentage = 100 * loop_counter // total
                     if percentage > prev_percentage:
                         print(" {}% done ({} clusters)".format(percentage, loop_counter))
+                if len(cluster_array) > 0:
+                    cls.objects.bulk_create(cluster_array)
+                return
 
             else:
                 raise ValueError("precision must be in the [1, {}] interval".format(MAX_CLUSTER_PRECISION_SIZE))
