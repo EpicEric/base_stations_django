@@ -16,6 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import include, path
+from rest_framework.authtoken import views
 
 from base_station.views import (
      BasinhoppingView, HeatMapView, SlsqpView,
@@ -29,6 +30,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include((router.urls, 'django_project'), namespace='api')),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    path('api-token-auth/', views.obtain_auth_token),
     path('login/', auth_views.login, {'template_name': 'admin/login.html'}, name='login'),
     path('logout/', auth_views.logout, name='logout'),
     path('oauth2/', include('rest_framework_social_oauth2.urls')),
