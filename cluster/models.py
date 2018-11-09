@@ -72,7 +72,7 @@ class BaseStationCluster(models.Model):
                 # Get smaller clusters and annotate the new geohash for the bigger clusters
                 smaller_precision = precision + 1
                 smaller_clusters = cls.objects.filter(precision=smaller_precision, operator=operator)\
-                    .annotate(bigger_geohash=Substr('geohash', 1, precision))
+                    .annotate(bigger_geohash=GeoHash('point', precision=precision))
                 # Group by bigger geohash
                 clusters_hashes = smaller_clusters.values('bigger_geohash').distinct()
                 total = clusters_hashes.count()
