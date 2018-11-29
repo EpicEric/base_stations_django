@@ -85,7 +85,8 @@ MIDDLEWARE = [
 ]
 
 CORS_ORIGIN_WHITELIST = (
-    'localhost:8080'
+    'localhost:8080',
+    'stoic-bell-68746f.netlify.com'
 )
 
 ROOT_URLCONF = 'django_project.urls'
