@@ -84,10 +84,11 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CORS_ORIGIN_WHITELIST = (
+CORS_ORIGIN_WHITELIST = [
     'localhost:8080',
-    'stoic-bell-68746f.netlify.com'
-)
+    'stoic-bell-68746f.netlify.com',
+    'tcc.ericpires.com.br'
+]
 
 ROOT_URLCONF = 'django_project.urls'
 
