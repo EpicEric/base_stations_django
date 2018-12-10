@@ -13,7 +13,7 @@ class OptimizationViewSet(viewsets.ViewSet):
 
         bounds = ((min_lat, max_lat), (min_long, max_long))
         bss = IdentifiedBaseStation.get_base_stations_inside_bounds(
-            bounds[0][0], bounds[1][0], bounds[0][1], bounds[1][1])\
+            bounds[1][0] - 1/220, bounds[0][0] - 1/220, bounds[1][1] + 1/220, bounds[0][1] + 1/220)\
             .filter(radio='GSM')
         solution = OptimizeLocation.taguchi(bss, 2, bounds)
 
