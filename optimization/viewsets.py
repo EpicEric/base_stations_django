@@ -22,3 +22,4 @@ class OptimizationViewSet(viewsets.ViewSet):
 
         response = {'suggestions': solution}
         return Response(response)
+

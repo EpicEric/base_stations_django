@@ -11,3 +11,4 @@ router.register(r'cluster', BaseStationClusterViewSet, base_name='cluster')
 router.register(r'operator', OperatorViewSet, base_name='operator')
 router.register(r'map_info', MapInfoViewSet, base_name='map_info')
 router.register(r'optimization', OptimizationViewSet, base_name='optimization')
+

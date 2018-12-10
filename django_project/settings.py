@@ -86,7 +86,6 @@ MIDDLEWARE = [
 
 CORS_ORIGIN_WHITELIST = [
     'localhost:8080',
-    'stoic-bell-68746f.netlify.com',
     'tcc.ericpires.com.br'
 ]
 
