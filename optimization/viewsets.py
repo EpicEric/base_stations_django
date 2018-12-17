@@ -22,7 +22,7 @@ class OptimizationViewSet(viewsets.ViewSet):
         bss = IdentifiedBaseStation.get_base_stations_inside_bounds(
             bounds[1][0] - 1/220, bounds[0][0] - 1/220, bounds[1][1] + 1/220, bounds[0][1] + 1/220)\
             .filter(radio='GSM')
-        solution = OptimizeLocation.taguchi(bss, number_erbs, bounds)
+        solution = OptimizeLocation.slsqp(bss, number_erbs, bounds)
         solution = [list(s) for s in solution]
         bs_coordinates = list(map(lambda bs: [bs.point.x, bs.point.y], bss))
 
