@@ -6,17 +6,16 @@ from base_station.models import IdentifiedBaseStation
 class OptimizationViewSet(viewsets.ViewSet):
     def list(self, request):
         query_params = request._request.GET.copy()
+
         min_lat = float(query_params.pop('min_lat', None)[0])
         max_lat = float(query_params.pop('max_lat', None)[0])
         min_long = float(query_params.pop('min_long', None)[0])
         max_long = float(query_params.pop('max_long', None)[0])
-
         bounds = ((min_lat, max_lat), (min_long, max_long))
         bss = IdentifiedBaseStation.get_base_stations_inside_bounds(
             bounds[1][0] - 1/220, bounds[0][0] - 1/220, bounds[1][1] + 1/220, bounds[0][1] + 1/220)\
             .filter(radio='GSM')
-        solution = OptimizeLocation.taguchi(bss, 2, bounds)
-
+        solution = OptimizeLocation.basinhopping(bss, 2, bounds)
         solution = [list(s) for s in solution]
         bs_coordinates = list(map(lambda bs: [bs.point.x, bs.point.y], bss))
 
