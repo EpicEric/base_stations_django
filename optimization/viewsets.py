@@ -11,11 +11,18 @@ class OptimizationViewSet(viewsets.ViewSet):
         max_lat = float(query_params.pop('max_lat', None)[0])
         min_long = float(query_params.pop('min_long', None)[0])
         max_long = float(query_params.pop('max_long', None)[0])
+        number_erbs = query_params.pop('number_erbs', None)
+        if number_erbs:
+            number_erbs = int(number_erbs[0])
+        else:
+            number_erbs = 1
+        print(number_erbs)
+
         bounds = ((min_lat, max_lat), (min_long, max_long))
         bss = IdentifiedBaseStation.get_base_stations_inside_bounds(
             bounds[1][0] - 1/220, bounds[0][0] - 1/220, bounds[1][1] + 1/220, bounds[0][1] + 1/220)\
             .filter(radio='GSM')
-        solution = OptimizeLocation.basinhopping(bss, 2, bounds)
+        solution = OptimizeLocation.basinhopping(bss, number_erbs, bounds)
         solution = [list(s) for s in solution]
         bs_coordinates = list(map(lambda bs: [bs.point.x, bs.point.y], bss))
 
