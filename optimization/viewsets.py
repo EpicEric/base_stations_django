@@ -26,7 +26,6 @@ class OptimizationViewSet(viewsets.ViewSet):
         solution = OptimizeLocation.taguchi(bss, number_erbs, bounds)
         solution = [list(s) for s in solution]
         bs_coordinates = list(map(lambda bs: [bs.point.x, bs.point.y], bss))
-        print(distance(solution[0], solution[1]))
         response = {'suggestions': solution}
         if number_erbs == 2:
             if distance(solution[0], solution[1]) <= 1/440:
