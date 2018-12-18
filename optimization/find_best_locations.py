@@ -4,6 +4,7 @@ import numpy as np
 from scipy.optimize import minimize, basinhopping
 from optimization.models import OptimizedBaseStation
 from optimization.taguchi import taguchi
+import random
 
 class OptimizeLocation():
 
@@ -56,3 +57,17 @@ class OptimizeLocation():
         solution = taguchi(bounds * number, 3, lambda bss: OptimizeLocation.objective(covered_area_by_bs, bss), 0.9)
         print(solution)
         return OptimizeLocation.grouper(solution['x'], 2)
+
+    def random_search(base_stations, number, bounds, iterations):
+        covered_area_by_bs = list(map(lambda bs: bs.covered_area, base_stations))
+        solution = {"x": 0, "y": 0, "area": 0}
+
+        for i in range(iterations):
+            random_x = random.uniform(bounds[0][0], bounds[0][1])
+            random_y = random.uniform(bounds[1][0], bounds[1][1])
+            area = -1*(OptimizeLocation.objective(covered_area_by_bs, [random_x, random_y]))
+            if area > solution["area"]:
+                solution["area"] = area
+                solution["x"] = random_x
+                solution["y"] = random_y
+        return [(solution["x"], solution["y"])]
