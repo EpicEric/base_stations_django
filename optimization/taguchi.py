@@ -51,7 +51,7 @@ def taguchi(limits, s, objective, epsilon):
         for i in range(params_qty):
             max_value = sn_mean[i][0]
             for j in range(1, s):
-                if sn_mean[i][j] < max_value:
+                if sn_mean[i][j] > max_value:
                     max_value = sn_mean[i][j]
                     max_values_indexes[i] = j
         v = [level_to_parameter[param_index][i] for param_index, i in enumerate(max_values_indexes)]
