@@ -55,19 +55,22 @@ class OptimizeLocation():
 
         covered_area_by_bs = list(map(lambda bs: bs.covered_area, base_stations))
         solution = taguchi(bounds * number, 3, lambda bss: OptimizeLocation.objective(covered_area_by_bs, bss), 0.9)
-        print(solution)
         return OptimizeLocation.grouper(solution['x'], 2)
 
     def random_search(base_stations, number, bounds, iterations):
         covered_area_by_bs = list(map(lambda bs: bs.covered_area, base_stations))
-        solution = {"x": 0, "y": 0, "area": 0}
-
+        solution = {"new_bss": [], "area": 0}
+        
         for i in range(iterations):
-            random_x = random.uniform(bounds[0][0], bounds[0][1])
-            random_y = random.uniform(bounds[1][0], bounds[1][1])
-            area = -1*(OptimizeLocation.objective(covered_area_by_bs, [random_x, random_y]))
+            random_x = []
+            random_y = []
+            new_bss = []
+            for j in range(number):
+                random_x.append(random.uniform(bounds[0][0], bounds[0][1]))
+                random_y.append(random.uniform(bounds[1][0], bounds[1][1]))
+                new_bss += [random_x[-1]] + [random_y[-1]]
+            area = -1*(OptimizeLocation.objective(covered_area_by_bs, new_bss))
             if area > solution["area"]:
                 solution["area"] = area
-                solution["x"] = random_x
-                solution["y"] = random_y
-        return [(solution["x"], solution["y"])]
+                solution["new_bss"] = new_bss
+        return OptimizeLocation.grouper(solution["new_bss"], 2)
