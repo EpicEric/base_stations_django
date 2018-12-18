@@ -30,7 +30,7 @@ def taguchi(limits, s, objective, epsilon):
     oa = orthogonal_array()
     experiments_qty = len(oa[0])
     iterations = 0
-    while any(abs(b) > 0.0001 for b in beta):
+    while any(abs(b) > 0.001 for b in beta):
         iterations += 1
         parameter_array = np.zeros((params_qty, experiments_qty))
         level_to_parameter = np.zeros((params_qty, s))

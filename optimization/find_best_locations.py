@@ -13,7 +13,7 @@ class OptimizeLocation():
 
     @staticmethod
     def objective(covered_area_by_bs, new_bss):
-        bs_objects = [OptimizedBaseStation(point = Point(bs[0], bs[1]))
+        bs_objects = [OptimizedBaseStation(point = Point(bs[1], bs[0]))
                     for bs in OptimizeLocation.grouper(new_bss, 2)]
         new_bss_covered_area = map(lambda bs: bs.covered_area, bs_objects)
         new_bss_union = reduce(lambda bs0, bs1: bs0 | bs1, new_bss_covered_area)
@@ -22,8 +22,8 @@ class OptimizeLocation():
         return -(total_area)
 
     def basinhopping(base_stations, number, bounds):
-        x = np.linspace(bounds[0][0], bounds[0][1], number)
-        y = (bounds[1][1] - bounds[1][0])/2 + bounds[1][0]
+        x = np.linspace(bounds[1][0], bounds[1][1], number)
+        y = (bounds[0][1] - bounds[0][0])/2 + bounds[0][0]
         x0 = [Point(xi, y) for xi in x]
 
         minimizer_kwargs = {"method":"L-BFGS-B", "bounds": bounds * number}

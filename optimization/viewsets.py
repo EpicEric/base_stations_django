@@ -17,7 +17,6 @@ class OptimizationViewSet(viewsets.ViewSet):
             number_erbs = int(number_erbs[0])
         else:
             number_erbs = 1
-        print(number_erbs)
 
         bounds = ((min_lat, max_lat), (min_long, max_long))
         bss = IdentifiedBaseStation.get_base_stations_inside_bounds(
