@@ -21,15 +21,16 @@ def taguchi(limits, s, objective, epsilon):
     params_qty = len(limits)        
     v = np.zeros(params_qty)
     beta = np.zeros(params_qty)
-
+    #print("LIMITS:", limits)
     for i in range(len(limits)):
         v[i] = (limits[i][0] + limits[i][1])/2
+        #print("v[i]", v[i])
         beta[i] = (limits[i][1] - limits[i][0])/(s + 1)
     
     oa = orthogonal_array()
     experiments_qty = len(oa[0])
     iterations = 0
-    while any(b > 0.001 for b in beta):
+    while any(abs(b) > 0.0001 for b in beta):
         iterations += 1
         parameter_array = np.zeros((params_qty, experiments_qty))
         level_to_parameter = np.zeros((params_qty, s))
@@ -37,8 +38,9 @@ def taguchi(limits, s, objective, epsilon):
             for x in set(oa[i]):
                 level_to_parameter[i][x-1] = mapping_function(x, s, v[i], beta[i], limits[i][0], limits[i][1])
             parameter_array[i] = list(map(lambda x: level_to_parameter[i][x-1], oa[i]))
-
+        #print("parameter_array", parameter_array)
         y = [objective(list(i)) for i in zip(*parameter_array)]
+        #print("y", y)
         sn = [10 * math.log10(i*i) for i in y]
         sn_mean = np.zeros((len(oa), s))
 
@@ -49,9 +51,10 @@ def taguchi(limits, s, objective, epsilon):
         for i in range(params_qty):
             max_value = sn_mean[i][0]
             for j in range(1, s):
-                if sn_mean[i][j] > max_value:
+                if sn_mean[i][j] < max_value:
                     max_value = sn_mean[i][j]
                     max_values_indexes[i] = j
         v = [level_to_parameter[param_index][i] for param_index, i in enumerate(max_values_indexes)]
         beta = beta * epsilon
+        #print("beta", beta)
     return {"iterations": iterations, "x": v}
