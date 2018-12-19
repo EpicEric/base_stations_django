@@ -18,18 +18,16 @@ class OptimizationViewSet(viewsets.ViewSet):
         else:
             number_erbs = 1
 
-        bounds = ((min_long, max_long), (min_lat, max_lat))
+        bounds = ((min_lat, max_lat), (min_long, max_long))
         bss = IdentifiedBaseStation.get_base_stations_inside_bounds(
-            bounds[0][0] - 1/220, bounds[1][0] - 1/220, bounds[0][1] + 1/220, bounds[1][1] + 1/220)\
+            bounds[1][0] - 1/220, bounds[0][0] - 1/220, bounds[1][1] + 1/220, bounds[0][1] + 1/220)\
             .filter(radio='GSM')
-
-        result = OptimizeLocation.random_search(bss, number_erbs, bounds, 100)
-
-        suggestions = [list(s) for s in result[0]]
-        area = result[1]
-        response = {'suggestions': suggestions, "area": area}
+        solution = OptimizeLocation.random_search(bss, number_erbs, bounds, 100)
+        solution = [list(s) for s in solution]
+        bs_coordinates = list(map(lambda bs: [bs.point.x, bs.point.y], bss))
+        response = {'suggestions': solution}
         if number_erbs == 2:
-            if distance(suggestions[0], suggestions[1]) <= 1/440:
+            if distance(solution[0], solution[1]) <= 1/440:
                 response['message'] = 'Instalar uma antena só é a melhor opção.'
 
         return Response(response)
