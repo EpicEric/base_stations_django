@@ -28,10 +28,10 @@ class BasinhoppingView(ExampleView):
     
     def get(self, request, *args, **kwargs):
         bounds = ExampleView.get_bounds_from_parameters(request)
-        location = [bounds[0][0] + (bounds[0][1] - bounds[0][0])/2, 
+        location = [bounds[0][0]  + (bounds[0][1] - bounds[0][0])/2, 
                     bounds[1][0] + (bounds[1][1] - bounds[1][0])/2]
         bss = IdentifiedBaseStation.get_base_stations_inside_bounds(
-            bounds[0][0], bounds[1][0], bounds[0][1], bounds[1][1])\
+            bounds[0][0] -1/220, bounds[1][0] -1/220, bounds[0][1] + 1/220, bounds[1][1] + 1/220)\
             .filter(radio='GSM')
         solution = OptimizeLocation.basinhopping(bss, 2, bounds)
         
@@ -52,7 +52,7 @@ class SlsqpView(ExampleView):
         location = [bounds[0][0] + (bounds[0][1] - bounds[0][0])/2, 
             bounds[1][0] + (bounds[1][1] - bounds[1][0])/2]
         bss = IdentifiedBaseStation.get_base_stations_inside_bounds(
-            bounds[0][0], bounds[1][0], bounds[0][1], bounds[1][1])\
+            bounds[0][0] -1/220, bounds[1][0] -1/220, bounds[0][1] + 1/220, bounds[1][1] + 1/220)\
             .filter(radio='GSM')
         solution = OptimizeLocation.slsqp(bss, 2, bounds)
         
@@ -71,7 +71,7 @@ class TaguchiView(ExampleView):
         location = [bounds[0][0] + (bounds[0][1] - bounds[0][0])/2, 
                     bounds[1][0] + (bounds[1][1] - bounds[1][0])/2]
         bss = IdentifiedBaseStation.get_base_stations_inside_bounds(
-            bounds[0][0], bounds[1][0], bounds[0][1], bounds[1][1])\
+            bounds[0][0] -1/220, bounds[1][0] -1/220, bounds[0][1] + 1/220, bounds[1][1] + 1/220)\
             .filter(radio='GSM')
 
         solution = OptimizeLocation.taguchi(bss, 2, bounds)

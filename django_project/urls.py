@@ -36,9 +36,9 @@ urlpatterns = [
     path('oauth2/', include('rest_framework_social_oauth2.urls')),
 
     # Demo URLs
-    #path('optimization/basinhopping', BasinhoppingView.as_view(), name='basinhopping'),
-    #path('optimization/slsqp', SlsqpView.as_view(), name='slsqp'),
-    #path('optimization/taguchi', TaguchiView.as_view(), name='taguchi'),
+    path('optimization/basinhopping', BasinhoppingView.as_view(), name='basinhopping'),
+    path('optimization/slsqp', SlsqpView.as_view(), name='slsqp'),
+    path('optimization/taguchi', TaguchiView.as_view(), name='taguchi'),
     #path('heat-map/', HeatMapView.as_view(), name='heat-map'),
     #path('optimization/', OptimizationView.as_view()),
 
