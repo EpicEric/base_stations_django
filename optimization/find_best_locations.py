@@ -18,8 +18,11 @@ class OptimizeLocation():
                     for bs in OptimizeLocation.grouper(new_bss, 2)]
         new_bss_covered_area = map(lambda bs: bs.covered_area, bs_objects)
         new_bss_union = reduce(lambda bs0, bs1: bs0 | bs1, new_bss_covered_area)
-        bss_union = reduce(lambda x, y: x | y, covered_area_by_bs)
-        total_area = (new_bss_union | bss_union).area
+        if len(covered_area_by_bs) > 0:
+            bss_union = reduce(lambda x, y: x | y, covered_area_by_bs)
+            total_area = (new_bss_union | bss_union).area
+        else:
+            total_area = new_bss_union.area
         return -(total_area)
 
     def basinhopping(base_stations, number, bounds):
@@ -31,8 +34,8 @@ class OptimizeLocation():
         covered_area_by_bs = list(map(lambda bs: bs.covered_area, base_stations))
         solution = basinhopping(lambda x: OptimizeLocation.objective(covered_area_by_bs, x), x0, minimizer_kwargs=minimizer_kwargs,
                     niter=10)
-        print(solution.x)
-        return OptimizeLocation.grouper(solution.x, 2)
+        area = -OptimizeLocation.objective(covered_area_by_bs, solution.x)
+        return (OptimizeLocation.grouper(solution.x, 2), area)
 
     def slsqp(base_stations, number, bounds):
         x = np.linspace(bounds[0][0], bounds[0][1], number)
@@ -46,7 +49,8 @@ class OptimizeLocation():
                             method='SLSQP',
                             bounds=bounds * number,
                             options={'eps': 0.1})
-        return OptimizeLocation.grouper(solution.x, 2)
+        area = -OptimizeLocation.objective(covered_area_by_bs, solution.x)
+        return (OptimizeLocation.grouper(solution.x, 2), area)
 
     def taguchi(base_stations, number, bounds):
         x = np.linspace(bounds[0][0], bounds[0][1], number)
@@ -55,7 +59,8 @@ class OptimizeLocation():
 
         covered_area_by_bs = list(map(lambda bs: bs.covered_area, base_stations))
         solution = taguchi(bounds * number, 3, lambda bss: OptimizeLocation.objective(covered_area_by_bs, bss), 0.9)
-        return OptimizeLocation.grouper(solution['x'], 2)
+        area = -OptimizeLocation.objective(covered_area_by_bs, solution['x'])
+        return (OptimizeLocation.grouper(solution['x'], 2), area)
 
     def random_search(base_stations, number, bounds, iterations):
         covered_area_by_bs = list(map(lambda bs: bs.covered_area, base_stations))
@@ -73,4 +78,5 @@ class OptimizeLocation():
             if area > solution["area"]:
                 solution["area"] = area
                 solution["new_bss"] = new_bss
-        return OptimizeLocation.grouper(solution["new_bss"], 2)
+        area = -OptimizeLocation.objective(covered_area_by_bs, solution["new_bss"])
+        return (OptimizeLocation.grouper(solution["new_bss"], 2), area)

@@ -46,7 +46,7 @@ def taguchi(limits, s, objective, epsilon):
 
         for i in range(params_qty):
             for j in range(experiments_qty):
-                sn_mean[i][oa[i][j]-1] += s/len(sn) * sn[j]
+                sn_mean[i][oa[i][j]-1] += (s/experiments_qty) * sn[j]
         max_values_indexes = [0] * params_qty
         for i in range(params_qty):
             max_value = sn_mean[i][0]
