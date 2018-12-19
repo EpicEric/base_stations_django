@@ -26,8 +26,8 @@ class OptimizeLocation():
         return -(total_area)
 
     def basinhopping(base_stations, number, bounds):
-        x = np.linspace(bounds[1][0], bounds[1][1], number)
-        y = (bounds[0][1] - bounds[0][0])/2 + bounds[0][0]
+        x = np.linspace(bounds[0][0], bounds[0][1], number)
+        y = (bounds[1][1] - bounds[1][0])/2 + bounds[1][0]
         x0 = [Point(xi, y) for xi in x]
 
         minimizer_kwargs = {"method":"L-BFGS-B", "bounds": bounds * number}
