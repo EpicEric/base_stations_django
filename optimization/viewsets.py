@@ -23,12 +23,11 @@ class OptimizationViewSet(viewsets.ViewSet):
             bounds[0][0] - 1/220, bounds[1][0] - 1/220, bounds[0][1] + 1/220, bounds[1][1] + 1/220)\
             .filter(radio='GSM')
 
-        result = OptimizeLocation.basinhopping(bss, number_erbs, bounds)
-        result_random = OptimizeLocation.random_search(bss, number_erbs, bounds, 100)
+        result = OptimizeLocation.random_search(bss, number_erbs, bounds, 100)
 
         suggestions = [list(s) for s in result[0]]
         area = result[1]
-        response = {'suggestions': suggestions, "areaTaguchi": area, "areaRandom": result_random[1]}
+        response = {'suggestions': suggestions, "area": area}
         if number_erbs == 2:
             if distance(suggestions[0], suggestions[1]) <= 1/440:
                 response['message'] = 'Instalar uma antena só é a melhor opção.'
