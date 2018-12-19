@@ -78,5 +78,5 @@ class OptimizeLocation():
             if area > solution["area"]:
                 solution["area"] = area
                 solution["new_bss"] = new_bss
-        area = -OptimizeLocation.objective(covered_area_by_bs, solution["new_bss"])
-        return (OptimizeLocation.grouper(solution["new_bss"], 2), area)
+        area2 = -OptimizeLocation.objective(covered_area_by_bs, solution["new_bss"])
+        return (OptimizeLocation.grouper(solution["new_bss"], 2), area2)

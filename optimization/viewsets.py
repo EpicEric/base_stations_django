@@ -18,13 +18,13 @@ class OptimizationViewSet(viewsets.ViewSet):
         else:
             number_erbs = 1
 
-        bounds = ((min_lat, max_lat), (min_long, max_long))
+        bounds = ((min_long, max_long), (min_lat, max_lat))
         bss = IdentifiedBaseStation.get_base_stations_inside_bounds(
-            bounds[1][0] - 1/220, bounds[0][0] - 1/220, bounds[1][1] + 1/220, bounds[0][1] + 1/220)\
+            bounds[0][0] - 1/220, bounds[1][0] - 1/220, bounds[0][1] + 1/220, bounds[1][1] + 1/220)\
             .filter(radio='GSM')
 
+        result = OptimizeLocation.basinhopping(bss, number_erbs, bounds)
         result_random = OptimizeLocation.random_search(bss, number_erbs, bounds, 100)
-        result = OptimizeLocation.taguchi(bss, number_erbs, bounds)
 
         suggestions = [list(s) for s in result[0]]
         area = result[1]
