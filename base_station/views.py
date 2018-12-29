@@ -31,9 +31,8 @@ class BasinhoppingView(ExampleView):
         location = [bounds[0][0]  + (bounds[0][1] - bounds[0][0])/2, 
                     bounds[1][0] + (bounds[1][1] - bounds[1][0])/2]
         bss = IdentifiedBaseStation.get_base_stations_inside_bounds(
-            bounds[0][0] -1/220, bounds[1][0] -1/220, bounds[0][1] + 1/220, bounds[1][1] + 1/220)\
-            .filter(radio='GSM')
-        solution = OptimizeLocation.basinhopping(bss, 2, bounds)
+            bounds[0][0] -1/110, bounds[1][0] -1/110, bounds[0][1] + 1/110, bounds[1][1] + 1/110)   
+        solution = OptimizeLocation.basinhopping(bss, 1, bounds)
         
         solution = [list(s) for s in solution]
         bs_coordinates = list(map(lambda bs: [bs.point.x, bs.point.y], bss))
@@ -52,9 +51,9 @@ class SlsqpView(ExampleView):
         location = [bounds[0][0] + (bounds[0][1] - bounds[0][0])/2, 
             bounds[1][0] + (bounds[1][1] - bounds[1][0])/2]
         bss = IdentifiedBaseStation.get_base_stations_inside_bounds(
-            bounds[0][0] -1/220, bounds[1][0] -1/220, bounds[0][1] + 1/220, bounds[1][1] + 1/220)\
+            bounds[0][0] -1/110, bounds[1][0] -1/110, bounds[0][1] + 1/110, bounds[1][1] + 1/110)\
             .filter(radio='GSM')
-        solution = OptimizeLocation.slsqp(bss, 2, bounds)
+        solution = OptimizeLocation.slsqp(bss, 1, bounds)
         
         solution = [list(s) for s in solution]
         bs_coordinates = list(map(lambda bs: [bs.point.x, bs.point.y], bss))
@@ -71,10 +70,10 @@ class TaguchiView(ExampleView):
         location = [bounds[0][0] + (bounds[0][1] - bounds[0][0])/2, 
                     bounds[1][0] + (bounds[1][1] - bounds[1][0])/2]
         bss = IdentifiedBaseStation.get_base_stations_inside_bounds(
-            bounds[0][0] -1/220, bounds[1][0] -1/220, bounds[0][1] + 1/220, bounds[1][1] + 1/220)\
+            bounds[0][0] -1/110, bounds[1][0] -1/110, bounds[0][1] + 1/110, bounds[1][1] + 1/110)\
             .filter(radio='GSM')
-
-        solution = OptimizeLocation.taguchi(bss, 2, bounds)
+        # print(bss[0].point)
+        solution = OptimizeLocation.random_search(bss, 1, bounds, 100)
 
         solution = [list(s) for s in solution]
         bs_coordinates = list(map(lambda bs: [bs.point.x, bs.point.y], bss))
